@@ -1,4 +1,4 @@
-package nl.tue.hti.g33.thermostat;
+package nl.tue.hti.g33.thermostat.utils;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -9,6 +9,10 @@ import android.graphics.drawable.Drawable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
+
+import java.util.ArrayList;
+
+import nl.tue.hti.g33.thermostat.R;
 
 
 /**
@@ -23,6 +27,8 @@ public class DayTimelineView extends View {
     private TextPaint mTextPaint;
     private float mTextWidth;
     private float mTextHeight;
+
+    private ArrayList<Period> mDayPeriods = new ArrayList<>();
 
     public DayTimelineView(Context context) {
         super(context);
@@ -79,6 +85,107 @@ public class DayTimelineView extends View {
 
         Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
         mTextHeight = fontMetrics.bottom;
+    }
+
+    /**
+     * Add a switch from day to night / night to day
+     * @param hh
+     * @param mm
+     */
+    public void addSwitch(int hh, int mm) {
+        //
+    }
+
+    /* TODO: implement Thermostat class that gets / puts / contains
+     * all the basic info about schedule, temperatures, etc.
+     */
+    public void onScheduleChange(Thermostat thermostat) {
+        //
+    }
+
+    /**
+     * <p>
+     * Measure the view and its content to determine the measured width and the
+     * measured height. This method is invoked by {@link #measure(int, int)} and
+     * should be overridden by subclasses to provide accurate and efficient
+     * measurement of their contents.
+     * </p>
+     * <p/>
+     * <p>
+     * <strong>CONTRACT:</strong> When overriding this method, you
+     * <em>must</em> call {@link #setMeasuredDimension(int, int)} to store the
+     * measured width and height of this view. Failure to do so will trigger an
+     * <code>IllegalStateException</code>, thrown by
+     * {@link #measure(int, int)}. Calling the superclass'
+     * {@link #onMeasure(int, int)} is a valid use.
+     * </p>
+     * <p/>
+     * <p>
+     * The base class implementation of measure defaults to the background size,
+     * unless a larger size is allowed by the MeasureSpec. Subclasses should
+     * override {@link #onMeasure(int, int)} to provide better measurements of
+     * their content.
+     * </p>
+     * <p/>
+     * <p>
+     * If this method is overridden, it is the subclass's responsibility to make
+     * sure the measured height and width are at least the view's minimum height
+     * and width ({@link #getSuggestedMinimumHeight()} and
+     * {@link #getSuggestedMinimumWidth()}).
+     * </p>
+     *
+     * @param widthMeasureSpec  horizontal space requirements as imposed by the parent.
+     *                          The requirements are encoded with
+     *                          {@link MeasureSpec}.
+     * @param heightMeasureSpec vertical space requirements as imposed by the parent.
+     *                          The requirements are encoded with
+     *                          {@link MeasureSpec}.
+     * @see #getMeasuredWidth()
+     * @see #getMeasuredHeight()
+     * @see #setMeasuredDimension(int, int)
+     * @see #getSuggestedMinimumHeight()
+     * @see #getSuggestedMinimumWidth()
+     * @see MeasureSpec#getMode(int)
+     * @see MeasureSpec#getSize(int)
+     */
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int hSpecMode = MeasureSpec.getMode(heightMeasureSpec);
+        int hSpecSize = MeasureSpec.getSize(heightMeasureSpec);
+        int wSpecMode = MeasureSpec.getMode(widthMeasureSpec);
+        int wSpecSize = MeasureSpec.getSize(widthMeasureSpec);
+        int height, width;
+        if (wSpecMode == MeasureSpec.EXACTLY) {
+            int wSuggested = getSuggestedMinimumWidth();
+            width = (wSpecSize < wSuggested ? wSuggested : wSpecSize);
+        }
+        else if (wSpecMode == MeasureSpec.AT_MOST) {
+            width = wSpecSize;
+        }
+        else if (wSpecMode == MeasureSpec.UNSPECIFIED) {
+            width = getSuggestedMinimumWidth();
+        }
+        else {
+            width = getSuggestedMinimumWidth();
+        }
+
+        if (hSpecMode == MeasureSpec.EXACTLY) {
+            int hSuggested = getSuggestedMinimumHeight();
+            height = (hSpecSize < hSuggested ? hSuggested : hSpecSize);
+        }
+        else if (hSpecMode == MeasureSpec.AT_MOST || hSpecMode == MeasureSpec.UNSPECIFIED) {
+            height = computeHeight(width);
+            height = (height < getSuggestedMinimumHeight() ? getSuggestedMinimumHeight() : height);
+        }
+        else {
+            height = getSuggestedMinimumHeight();
+        }
+        setMeasuredDimension(width, height);
+    }
+
+    private int computeHeight(int width) {
+        final double ratio = 0.2;
+        return (int) (width * ratio);
     }
 
     @Override
