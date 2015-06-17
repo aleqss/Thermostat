@@ -1,8 +1,9 @@
 <resources>
     <declare-styleable name="DayTimelineView">
-        <attr name="exampleString" format="string" />
-        <attr name="exampleDimension" format="dimension" />
-        <attr name="exampleColor" format="color" />
-        <attr name="exampleDrawable" format="color|reference" />
+        <attr name="dayOfTheWeek" format="string" />
+        <attr name="colorText" format="color" />
+        <attr name="colorGrid" format="color" />
+        <attr name="colorDay" format="color" />
+        <attr name="colorNight" format="color" />
     </declare-styleable>
 </resources>

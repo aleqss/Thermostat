@@ -5,135 +5,88 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
+import android.graphics.Rect;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
 
-import java.util.ArrayList;
-
 import nl.tue.hti.g33.thermostat.R;
 
-
 /**
- * TODO: document your custom view class.
+ * A small widget representing a timeline for one day.
+ * Consists of a timeline (0-24 h) with areas coloured in two different colours,
+ * one for day periods and one for night periods.
  */
 public class DayTimelineView extends View {
-    private String mExampleString; // TODO: use a default from R.string...
-    private int mExampleColor = Color.RED; // TODO: use a default from R.color...
-    private float mExampleDimension = 0; // TODO: use a default from R.dimen...
-    private Drawable mExampleDrawable;
+
+    private int mColorText = Color.BLACK;
+    private int mColorGrid = Color.BLACK;
+    private int mColorDay = Color.RED;
+    private int mColorNight = Color.BLUE;
 
     private TextPaint mTextPaint;
-    private float mTextWidth;
-    private float mTextHeight;
+    private Paint mDrawingPaint;
 
-    private ArrayList<Period> mDayPeriods = new ArrayList<>();
+    private Iterable<Period> mDayPeriods;
+
+    private int mPaddingLeft = getPaddingLeft();
+    private int mPaddingTop = getPaddingTop();
+    private int mPaddingRight = getPaddingRight();
+    private int mPaddingBottom = getPaddingBottom();
 
     public DayTimelineView(Context context) {
+
         super(context);
         init(null, 0);
     }
 
     public DayTimelineView(Context context, AttributeSet attrs) {
+
         super(context, attrs);
         init(attrs, 0);
     }
 
     public DayTimelineView(Context context, AttributeSet attrs, int defStyle) {
+
         super(context, attrs, defStyle);
         init(attrs, defStyle);
     }
 
+    /**
+     * Initialise the view.
+     * @param attrs Attributes (from xml).
+     * @param defStyle Styling (from style file).
+     */
     private void init(AttributeSet attrs, int defStyle) {
+
         // Load attributes
         final TypedArray a = getContext().obtainStyledAttributes(
                 attrs, R.styleable.DayTimelineView, defStyle, 0);
-
-        mExampleString = a.getString(
-                R.styleable.DayTimelineView_exampleString);
-        mExampleColor = a.getColor(
-                R.styleable.DayTimelineView_exampleColor,
-                mExampleColor);
-        // Use getDimensionPixelSize or getDimensionPixelOffset when dealing with
-        // values that should fall on pixel boundaries.
-        mExampleDimension = a.getDimension(
-                R.styleable.DayTimelineView_exampleDimension,
-                mExampleDimension);
-
-        if (a.hasValue(R.styleable.DayTimelineView_exampleDrawable)) {
-            mExampleDrawable = a.getDrawable(
-                    R.styleable.DayTimelineView_exampleDrawable);
-            mExampleDrawable.setCallback(this);
-        }
-
+        DAY dayOfTheWeek = getDayEnum(a.getString(R.styleable.DayTimelineView_dayOfTheWeek));
+        mDayPeriods = Thermostat.getDaySchedule(dayOfTheWeek);
+        mColorText = a.getColor(R.styleable.DayTimelineView_colorText, mColorText);
+        mColorGrid = a.getColor(R.styleable.DayTimelineView_colorGrid, mColorGrid);
+        mColorDay = a.getColor(R.styleable.DayTimelineView_colorDay, mColorDay);
+        mColorNight = a.getColor(R.styleable.DayTimelineView_colorNight, mColorNight);
         a.recycle();
 
         // Set up a default TextPaint object
         mTextPaint = new TextPaint();
+        mTextPaint.setColor(mColorText);
         mTextPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
-        mTextPaint.setTextAlign(Paint.Align.LEFT);
+        mTextPaint.setTextAlign(Paint.Align.CENTER);
 
-        // Update TextPaint and text measurements from attributes
-        invalidateTextPaintAndMeasurements();
-    }
+        // Set up the paint for the drawing;
+        mDrawingPaint = new Paint();
 
-    private void invalidateTextPaintAndMeasurements() {
-        mTextPaint.setTextSize(mExampleDimension);
-        mTextPaint.setColor(mExampleColor);
-        mTextWidth = mTextPaint.measureText(mExampleString);
-
-        Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
-        mTextHeight = fontMetrics.bottom;
+        setClickable(true);
     }
 
     /**
-     * Add a switch from day to night / night to day
-     * @param hh
-     * @param mm
-     */
-    public void addSwitch(int hh, int mm) {
-        //
-    }
-
-    /* TODO: implement Thermostat class that gets / puts / contains
-     * all the basic info about schedule, temperatures, etc.
-     */
-    public void onScheduleChange(Thermostat thermostat) {
-        //
-    }
-
-    /**
-     * <p>
      * Measure the view and its content to determine the measured width and the
      * measured height. This method is invoked by {@link #measure(int, int)} and
      * should be overridden by subclasses to provide accurate and efficient
      * measurement of their contents.
-     * </p>
-     * <p/>
-     * <p>
-     * <strong>CONTRACT:</strong> When overriding this method, you
-     * <em>must</em> call {@link #setMeasuredDimension(int, int)} to store the
-     * measured width and height of this view. Failure to do so will trigger an
-     * <code>IllegalStateException</code>, thrown by
-     * {@link #measure(int, int)}. Calling the superclass'
-     * {@link #onMeasure(int, int)} is a valid use.
-     * </p>
-     * <p/>
-     * <p>
-     * The base class implementation of measure defaults to the background size,
-     * unless a larger size is allowed by the MeasureSpec. Subclasses should
-     * override {@link #onMeasure(int, int)} to provide better measurements of
-     * their content.
-     * </p>
-     * <p/>
-     * <p>
-     * If this method is overridden, it is the subclass's responsibility to make
-     * sure the measured height and width are at least the view's minimum height
-     * and width ({@link #getSuggestedMinimumHeight()} and
-     * {@link #getSuggestedMinimumWidth()}).
-     * </p>
-     *
      * @param widthMeasureSpec  horizontal space requirements as imposed by the parent.
      *                          The requirements are encoded with
      *                          {@link MeasureSpec}.
@@ -150,11 +103,15 @@ public class DayTimelineView extends View {
      */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+
+        // Retrieve data
         int hSpecMode = MeasureSpec.getMode(heightMeasureSpec);
         int hSpecSize = MeasureSpec.getSize(heightMeasureSpec);
         int wSpecMode = MeasureSpec.getMode(widthMeasureSpec);
         int wSpecSize = MeasureSpec.getSize(widthMeasureSpec);
         int height, width;
+
+        // Set width
         if (wSpecMode == MeasureSpec.EXACTLY) {
             int wSuggested = getSuggestedMinimumWidth();
             width = (wSpecSize < wSuggested ? wSuggested : wSpecSize);
@@ -169,6 +126,7 @@ public class DayTimelineView extends View {
             width = getSuggestedMinimumWidth();
         }
 
+        // Set height
         if (hSpecMode == MeasureSpec.EXACTLY) {
             int hSuggested = getSuggestedMinimumHeight();
             height = (hSpecSize < hSuggested ? hSuggested : hSpecSize);
@@ -180,118 +138,125 @@ public class DayTimelineView extends View {
         else {
             height = getSuggestedMinimumHeight();
         }
+
+        // This has to be here
         setMeasuredDimension(width, height);
     }
 
+    /**
+     * Computes the height of the widget as deduced from width.
+     * @param width Width of the widget.
+     * @return Desirable height of the view.
+     */
     private int computeHeight(int width) {
+
         final double ratio = 0.2;
         return (int) (width * ratio);
     }
 
+    /**
+     * Draws the view.
+     * @param canvas the canvas on which the background will be drawn
+     */
     @Override
     protected void onDraw(Canvas canvas) {
+
         super.onDraw(canvas);
 
-        // TODO: consider storing these as member variables to reduce
-        // allocations per draw cycle.
-        int paddingLeft = getPaddingLeft();
-        int paddingTop = getPaddingTop();
-        int paddingRight = getPaddingRight();
-        int paddingBottom = getPaddingBottom();
+        int contentWidth = getWidth() - mPaddingLeft - mPaddingRight;
+        int contentHeight = getHeight() - mPaddingTop - mPaddingBottom;
+        int lineHeight = contentHeight - Math.round(mTextPaint.getFontSpacing());
 
-        int contentWidth = getWidth() - paddingLeft - paddingRight;
-        int contentHeight = getHeight() - paddingTop - paddingBottom;
+        drawIntervals(lineHeight, contentWidth, canvas);
 
-        // Draw the text.
-        canvas.drawText(mExampleString,
-                paddingLeft + (contentWidth - mTextWidth) / 2,
-                paddingTop + (contentHeight + mTextHeight) / 2,
-                mTextPaint);
+        drawGrid(lineHeight + 5, contentWidth, canvas);
 
-        // Draw the example drawable on top of the text.
-        if (mExampleDrawable != null) {
-            mExampleDrawable.setBounds(paddingLeft, paddingTop,
-                    paddingLeft + contentWidth, paddingTop + contentHeight);
-            mExampleDrawable.draw(canvas);
+        drawSubscript(contentHeight, contentWidth, canvas);
+    }
+
+    /**
+     * Draws the night / day intervals.
+     * @param height Height of the drawing area.
+     * @param width Width of the drawing area.
+     * @param canvas canvas to draw on.
+     */
+    private void drawIntervals(int height, int width, Canvas canvas) {
+
+        Rect area = new Rect(0, 0, width, height);
+
+        // Draw the border
+        mDrawingPaint.setColor(mColorGrid);
+        mDrawingPaint.setStyle(Paint.Style.STROKE);
+        canvas.drawRect(area, mDrawingPaint);
+
+        // Everything is night by default
+        mDrawingPaint.setColor(mColorNight);
+        mDrawingPaint.setStyle(Paint.Style.FILL);
+        canvas.drawRect(area, mDrawingPaint);
+
+        // Draw day periods
+        mDrawingPaint.setColor(mColorDay);
+        mDrawingPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        for (Period p : mDayPeriods) {
+            int left = (int) (width * p.getStartingTime() / (24 * 60.0));
+            int right = (int) (width * p.getEndTime() / (24 * 60.0));
+            canvas.drawRect(left, 0, right, height, mDrawingPaint);
         }
     }
 
     /**
-     * Gets the example string attribute value.
-     *
-     * @return The example string attribute value.
+     * Draws vertical lines corresponding to every hour.
+     * @param height Height of the lines.
+     * @param width Width of the lines.
+     * @param canvas Canvas to draw on.
      */
-    public String getExampleString() {
-        return mExampleString;
+    private void drawGrid(int height, int width, Canvas canvas) {
+
+        mDrawingPaint.setColor(mColorGrid);
+        mDrawingPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        for (int i = 0; i <= 24; i++) {
+            int x = (int) (i * width / 24.0);
+            canvas.drawLine(x, 0, x, height, mDrawingPaint);
+        }
     }
 
     /**
-     * Sets the view's example string attribute value. In the example view, this string
-     * is the text to draw.
-     *
-     * @param exampleString The example string attribute value to use.
+     * Draws the subscript representing the current hour.
+     * @param height Height of the drawing area.
+     * @param width Width of the drawing area.
+     * @param canvas Canvas to draw on.
      */
-    public void setExampleString(String exampleString) {
-        mExampleString = exampleString;
-        invalidateTextPaintAndMeasurements();
+    private void drawSubscript(int height, int width, Canvas canvas) {
+
+        for (int i = 1; i <= 23; i += 2) {
+            canvas.drawText(Integer.valueOf(i).toString(),
+                    (int) (i * width / 24.0), height, mTextPaint);
+        }
     }
 
     /**
-     * Gets the example color attribute value.
-     *
-     * @return The example color attribute value.
+     * Get the {@code DAY} value from a string
+     * @param day String representing a day of the week.
+     * @return Corresponding {@code DAY} of the week.
      */
-    public int getExampleColor() {
-        return mExampleColor;
-    }
-
-    /**
-     * Sets the view's example color attribute value. In the example view, this color
-     * is the font color.
-     *
-     * @param exampleColor The example color attribute value to use.
-     */
-    public void setExampleColor(int exampleColor) {
-        mExampleColor = exampleColor;
-        invalidateTextPaintAndMeasurements();
-    }
-
-    /**
-     * Gets the example dimension attribute value.
-     *
-     * @return The example dimension attribute value.
-     */
-    public float getExampleDimension() {
-        return mExampleDimension;
-    }
-
-    /**
-     * Sets the view's example dimension attribute value. In the example view, this dimension
-     * is the font size.
-     *
-     * @param exampleDimension The example dimension attribute value to use.
-     */
-    public void setExampleDimension(float exampleDimension) {
-        mExampleDimension = exampleDimension;
-        invalidateTextPaintAndMeasurements();
-    }
-
-    /**
-     * Gets the example drawable attribute value.
-     *
-     * @return The example drawable attribute value.
-     */
-    public Drawable getExampleDrawable() {
-        return mExampleDrawable;
-    }
-
-    /**
-     * Sets the view's example drawable attribute value. In the example view, this drawable is
-     * drawn above the text.
-     *
-     * @param exampleDrawable The example drawable attribute value to use.
-     */
-    public void setExampleDrawable(Drawable exampleDrawable) {
-        mExampleDrawable = exampleDrawable;
+    private DAY getDayEnum(String day) {
+        switch (day) {
+            case "Mon":
+                return DAY.MON;
+            case "Tue":
+                return DAY.TUE;
+            case "Wed":
+                return DAY.WED;
+            case "Thu":
+                return DAY.THU;
+            case "Fri":
+                return DAY.FRI;
+            case "Sat":
+                return DAY.SAT;
+            case "Sun":
+                return DAY.SUN;
+            default:
+                return null;
+        }
     }
 }
