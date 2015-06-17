@@ -40,9 +40,34 @@ public class Thermostat {
         updateServer();
     }
 
+    public void addSwitch(DAY dayOfTheWeek, Period dayPeriod) {
+        DaySchedule schedule = mWeekSchedule.get(dayOfTheWeek.getId());
+        schedule.addDayPeriod(dayPeriod);
+    }
+
+    public void deleteSwitch(DAY dayOfTheWeek, Period dayPeriod) {
+        DaySchedule schedule = mWeekSchedule.get(dayOfTheWeek.getId());
+        schedule.deleteDayPeriod(dayPeriod);
+    }
+
     public double getCurrentTemperature() {
 
         return mCurrentTemperature.getTemperature(mFahrenheit);
+    }
+
+    public double getDayTemperature() {
+
+        return mDayTemperature.getTemperature(mFahrenheit);
+    }
+
+    public double getNightTemperature() {
+
+        return mNightTemperature.getTemperature(mFahrenheit);
+    }
+
+    public double getVacationTemperature() {
+
+        return mVacationTemperature.getTemperature(mFahrenheit);
     }
 
     /**
