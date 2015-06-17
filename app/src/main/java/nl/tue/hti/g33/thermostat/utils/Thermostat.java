@@ -142,6 +142,7 @@ public class Thermostat {
     public static Iterable<Period> getDaySchedule(DAY dayOfTheWeek) {
 
         return mWeekSchedule.get(dayOfTheWeek.getId()).getSchedule();
+        // TODO: mWeekSchedule is null here. Initialise the thermostat. Make it non-static maybe?
     }
 
     /**

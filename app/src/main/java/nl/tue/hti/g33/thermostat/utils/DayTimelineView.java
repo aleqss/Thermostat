@@ -101,7 +101,7 @@ public class DayTimelineView extends View {
      * @see MeasureSpec#getMode(int)
      * @see MeasureSpec#getSize(int)
      */
-    @Override
+   /* @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 
         // Retrieve data
@@ -141,18 +141,18 @@ public class DayTimelineView extends View {
 
         // This has to be here
         setMeasuredDimension(width, height);
-    }
+    }*/
 
     /**
      * Computes the height of the widget as deduced from width.
      * @param width Width of the widget.
      * @return Desirable height of the view.
      */
-    private int computeHeight(int width) {
+ /*   private int computeHeight(int width) {
 
         final double ratio = 0.2;
         return (int) (width * ratio);
-    }
+    }*/
 
     /**
      * Draws the view.
@@ -161,7 +161,7 @@ public class DayTimelineView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
 
-        super.onDraw(canvas);
+      /*  super.onDraw(canvas);
 
         int contentWidth = getWidth() - mPaddingLeft - mPaddingRight;
         int contentHeight = getHeight() - mPaddingTop - mPaddingBottom;
@@ -171,7 +171,7 @@ public class DayTimelineView extends View {
 
         drawGrid(lineHeight + 5, contentWidth, canvas);
 
-        drawSubscript(contentHeight, contentWidth, canvas);
+        drawSubscript(contentHeight, contentWidth, canvas);*/
     }
 
     /**
