@@ -7,10 +7,12 @@
     tools:context="nl.tue.hti.g33.thermostat.WeekScheduleFragment">
 
 
-    <EditText
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Monday" />
+        android:text="@string/mon"
+        android:enabled="false"
+        android:textColor="@color/primary_text_default_material_light" />
 
     <nl.tue.hti.g33.thermostat.utils.DayTimelineView
         android:layout_width="match_parent"
@@ -23,10 +25,12 @@
         custom:colorGrid="@android:color/secondary_text_light"
         custom:colorText="@android:color/primary_text_light" />
 
-    <EditText
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Tuesday" />
+        android:text="@string/tue"
+        android:enabled="false"
+        android:textColor="@color/primary_text_default_material_light" />
 
     <nl.tue.hti.g33.thermostat.utils.DayTimelineView
         android:layout_width="match_parent"
@@ -39,10 +43,12 @@
         custom:colorGrid="@android:color/secondary_text_light"
         custom:colorText="@android:color/primary_text_light" />
 
-    <EditText
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Wednesday" />
+        android:text="@string/wed"
+        android:enabled="false"
+        android:textColor="@color/primary_text_default_material_light" />
 
     <nl.tue.hti.g33.thermostat.utils.DayTimelineView
         android:layout_width="match_parent"
@@ -55,10 +61,12 @@
         custom:colorGrid="@android:color/secondary_text_light"
         custom:colorText="@android:color/primary_text_light" />
 
-    <EditText
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Thursday" />
+        android:text="@string/thu"
+        android:enabled="false"
+        android:textColor="@color/primary_text_default_material_light" />
 
     <nl.tue.hti.g33.thermostat.utils.DayTimelineView
         android:layout_width="match_parent"
@@ -71,10 +79,12 @@
         custom:colorGrid="@android:color/secondary_text_light"
         custom:colorText="@android:color/primary_text_light" />
 
-    <EditText
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Friday" />
+        android:text="@string/fri"
+        android:enabled="false"
+        android:textColor="@color/primary_text_default_material_light" />
 
     <nl.tue.hti.g33.thermostat.utils.DayTimelineView
         android:layout_width="match_parent"
@@ -87,10 +97,12 @@
         custom:colorGrid="@android:color/secondary_text_light"
         custom:colorText="@android:color/primary_text_light" />
 
-    <EditText
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Saturday" />
+        android:text="@string/sat"
+        android:enabled="false"
+        android:textColor="@color/primary_text_default_material_light" />
 
     <nl.tue.hti.g33.thermostat.utils.DayTimelineView
         android:layout_width="match_parent"
@@ -103,10 +115,12 @@
         custom:colorGrid="@android:color/secondary_text_light"
         custom:colorText="@android:color/primary_text_light" />
 
-    <EditText
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Sunday" />
+        android:text="@string/sun"
+        android:enabled="false"
+        android:textColor="@color/primary_text_default_material_light" />
 
     <nl.tue.hti.g33.thermostat.utils.DayTimelineView
         android:layout_width="match_parent"
