@@ -1,10 +1,6 @@
 <resources>
     <string name="app_name">Thermostat</string>
 
-    <string name="title_section1">Section 1</string>
-    <string name="title_section2">Section 2</string>
-    <string name="title_section3">Section 3</string>
-
     <string name="hello_world">Hello world!</string>
 
     <string name="action_settings">Settings</string>
@@ -12,4 +8,12 @@
     <string name="tab_home">Home</string>
     <string name="tab_week_schedule">Week Schedule</string>
     <string name="tab_vacation_mode">Vacation Mode</string>
+
+    <string name="mon">Monday</string>
+    <string name="tue">Tuesday</string>
+    <string name="wed">Wednesday</string>
+    <string name="thu">Thursday</string>
+    <string name="fri">Friday</string>
+    <string name="sat">Saturday</string>
+    <string name="sun">Sunday</string>
 </resources>
