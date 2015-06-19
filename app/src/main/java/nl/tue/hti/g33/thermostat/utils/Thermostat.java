@@ -1,6 +1,18 @@
 package nl.tue.hti.g33.thermostat.utils;
 
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import nl.tue.hti.g33.thermostat.parser.ParsedThermostat;
+import nl.tue.hti.g33.thermostat.service.WebService;
 
 /**
  * Represents all the basic functionality of the thermostat and serves as an API
@@ -9,52 +21,74 @@ import java.util.ArrayList;
  * additional service to fetch / upload data from the server.
  * @author Alex, 17.06.2015.
  */
-public class Thermostat {
+public class Thermostat extends BroadcastReceiver {
 
-    private static ArrayList<DaySchedule> mWeekSchedule;
-    private static Temperature mDayTemperature;
-    private static Temperature mNightTemperature;
-    private static Temperature mVacationTemperature;
-    private static Temperature mCurrentTemperature;
-    private static Temperature mTargetTemperature;
-    private static boolean mVacationModeOn;
-    private static boolean mWeekScheduleOn;
-    private static int time;
+    private static final String LOG_TAG = "utils.Thermostat";
+
+    private ArrayList<DaySchedule> mWeekSchedule;
+    private Temperature mDayTemperature;
+    private Temperature mNightTemperature;
+    private Temperature mCurrentTemperature;
+    private Temperature mTargetTemperature;
+    private boolean mWeekScheduleOn;
+    private int mTime;
+    private DAY mDayOfTheWeek;
     // TODO: get time from server
+    // TODO: Download data from the server
+    // TODO: Fire up the modified event on every update
 
-    private static boolean mFahrenheit = false;
+    private boolean mFahrenheit = false;
+    
+    private ArrayList<ThermostatListener> mListener;
+    private Context mContext;
+    private Timer timer;
 
-    /**
-     * Save new vacation mode temperature.
-     * @param temperature New vacation mode temperature.
-     */
-    public static void updateVacationTemperature(double temperature) {
+    public Thermostat() {
 
-        Temperature vacationTemperature = new Temperature(temperature, mFahrenheit);
-        mVacationTemperature = vacationTemperature;
-        updateServer();
+        Log.e(LOG_TAG, "This should not be called.");
+    }
+
+    public Thermostat(Context context) {
+
+        mListener = new ArrayList<>();
+        mContext = context;
+        mWeekSchedule = new ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            mWeekSchedule.add(new DaySchedule());
+        }
+        timer = new Timer("WebFetcher", true);
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+
+                downloadServer();
+            }
+        }, 0, 2000);
+    }
+
+    public void addListener(ThermostatListener listener) {
+
+        mListener.add(listener);
     }
 
     /**
      * Save new day temperature for week schedule.
      * @param temperature New day temperature.
      */
-    public static void updateDayTemperature(double temperature) {
+    public void updateDayTemperature(double temperature) {
 
-        Temperature dayTemperature = new Temperature(temperature, mFahrenheit);
-        mDayTemperature = dayTemperature;
-        updateServer();
+        mDayTemperature = new Temperature(temperature, mFahrenheit);
+        uploadServer();
     }
 
     /**
      * Save new night temperature for week schedule.
-     * @param temperature
+     * @param temperature New night temperature.
      */
-    public static void updateNightTemperature(double temperature) {
+    public void updateNightTemperature(double temperature) {
 
-        Temperature nightTemperature = new Temperature(temperature, mFahrenheit);
-        mNightTemperature = nightTemperature;
-        updateServer();
+        mNightTemperature = new Temperature(temperature, mFahrenheit);
+        uploadServer();
     }
 
     /**
@@ -63,10 +97,11 @@ public class Thermostat {
      * @param dayPeriod Period of day temperature to be added.
      * @see DaySchedule
      */
-    public static void addSwitch(DAY dayOfTheWeek, Period dayPeriod) {
+    public void addSwitch(DAY dayOfTheWeek, Period dayPeriod) {
 
         DaySchedule schedule = mWeekSchedule.get(dayOfTheWeek.getId());
         schedule.addDayPeriod(dayPeriod);
+        uploadServer();
     }
 
     /**
@@ -75,74 +110,79 @@ public class Thermostat {
      * @param dayPeriod Period of day temperature to remove.
      * @see DaySchedule
      */
-    public static void deleteSwitch(DAY dayOfTheWeek, Period dayPeriod) {
+    public void deleteSwitch(DAY dayOfTheWeek, Period dayPeriod) {
 
         DaySchedule schedule = mWeekSchedule.get(dayOfTheWeek.getId());
         schedule.deleteDayPeriod(dayPeriod);
+        uploadServer();
     }
 
     /**
      * Enable / disable the vacation mode override.
      * @param on State of vacation mode override.
      */
-    public static void setVacationMode(boolean on) {
+    public void setVacationMode(boolean on, Temperature temperature) {
 
-        // TODO: check how this works on the server
         if (on) {
-            mTargetTemperature = mVacationTemperature;
+            mTargetTemperature = temperature;
         }
         mWeekScheduleOn = !on;
+        uploadServer();
     }
 
     /**
      * Set target temperature to {@code temperature} temporarily.
      * @param temperature New temperature.
      */
-    public static void setTemporaryOverride(Temperature temperature) {
+    public void setTemporaryOverride(Temperature temperature) {
 
-        // TODO: check how this works on the server
         mTargetTemperature = temperature;
+        uploadServer();
     }
 
-    public static double getCurrentTemperature() {
+    public int getCurrentTime() {
+
+        return mTime;
+    }
+
+    public DAY getDayOfTheWeek() {
+
+        return mDayOfTheWeek;
+    }
+
+    public double getCurrentTemperature() {
 
         return mCurrentTemperature.getTemperature(mFahrenheit);
     }
 
-    public static double getDayTemperature() {
+    public double getDayTemperature() {
 
         return mDayTemperature.getTemperature(mFahrenheit);
     }
 
-    public static double getNightTemperature() {
+    public double getNightTemperature() {
 
         return mNightTemperature.getTemperature(mFahrenheit);
     }
 
-    public static double getVacationTemperature() {
+    public double getTargetTemperature() {
 
-        return mVacationTemperature.getTemperature(mFahrenheit);
+        return mTargetTemperature.getTemperature(mFahrenheit);
     }
 
-    public static boolean getWeekScheduleState() {
+    public boolean getWeekScheduleOn() {
 
         return mWeekScheduleOn;
     }
 
-    public static boolean getVacationModeOn() {
-
-        return mVacationModeOn;
-    }
-
-    public static Iterable<DaySchedule> getWeekSchedule() {
+    public Iterable<DaySchedule> getWeekSchedule() {
 
         return mWeekSchedule;
     }
 
-    public static Iterable<Period> getDaySchedule(DAY dayOfTheWeek) {
+    public Iterable<Period> getDaySchedule(DAY dayOfTheWeek) {
 
         return mWeekSchedule.get(dayOfTheWeek.getId()).getSchedule();
-        // TODO: mWeekSchedule is null here. Initialise the thermostat. Make it non-static maybe?
     }
 
     /**
@@ -150,14 +190,101 @@ public class Thermostat {
      * Thermostat then performs inner conversions on its own.
      * @param fahrenheit Use Fahrenheit instead of Celsius.
      */
-    public static void useFahrenheit(boolean fahrenheit) {
+    public void useFahrenheit(boolean fahrenheit) {
 
         mFahrenheit = fahrenheit;
     }
 
-    private static void updateServer() {
-        // TODO: think about what and how we send and how we do this altogether
-        // TODO: maybe use a service to constantly send and fetch information?
-        // TODO: or only do this on updates?
+    private void downloadServer() {
+
+        Intent broadcastReceiver = new Intent(mContext, Thermostat.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, 0, broadcastReceiver, 0);
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("receiver", pendingIntent);
+        bundle.putString("mode", "GET");
+        Intent serviceIntent = new Intent(mContext, WebService.class);
+        serviceIntent.putExtras(bundle);
+        mContext.startService(serviceIntent);
     }
+
+    private void uploadServer() {
+        // TODO: magic
+    }
+
+    /**
+     * This method is called when the BroadcastReceiver is receiving an Intent
+     * broadcast.  During this time you can use the other methods on
+     * BroadcastReceiver to view/modify the current result values.
+     * @param context The Context in which the receiver is running.
+     * @param intent  The Intent being received.
+     */
+    @Override
+    public void onReceive(Context context, Intent intent) {
+
+        Bundle extras = intent.getExtras();
+        ParsedThermostat root = (ParsedThermostat) extras.getSerializable("root");
+        mCurrentTemperature = root.mCurrentTemperature;
+        mTargetTemperature = root.mTargetTemperature;
+        mDayTemperature = root.mDayTemperature;
+        mNightTemperature = root.mNightTemperature;
+        mDayOfTheWeek = root.mDayOfTheWeek;
+        mTime = root.mTime;
+        mWeekScheduleOn = root.mWeekScheduleOn;
+        mWeekSchedule = root.mWeekSchedule;
+
+
+        /*ThermostatType root =
+                ((ArrayList<ThermostatType>) extras.getSerializable("rootList")).get(0);
+
+        mCurrentTemperature = new Temperature(root.getCurrentTemperature().doubleValue(), false);
+        mTargetTemperature = new Temperature(root.getTargetTemperature().doubleValue(), false);
+        mDayTemperature = new Temperature(root.getDayTemperature().doubleValue(), false);
+        mNightTemperature = new Temperature(root.getNightTemperature().doubleValue(), false);
+
+        mDayOfTheWeek = nameToDay(root.getCurrentDay());
+        mTime = Integer.getInteger(root.getTime().substring(0, 2)) *60
+                + Integer.getInteger(root.getTime().substring(3, 5));
+
+        mWeekScheduleOn = onOffToBoolean(root.getWeekProgramState());
+        mWeekSchedule = new ArrayList<>(7);
+
+        for (Day d : root.getWeekProgram().getDay()) {
+            DaySchedule schedule = new DaySchedule();
+            List<Day.Switch> switches = d.getSwitch();
+            Day.Switch pointer;
+            int i = 0;
+            while ((pointer = switches.get(i)) != null) {
+                if (onOffToBoolean(pointer.getState())) {
+                    if (pointer.getType().equals("day")) {
+                        int startH = Integer.getInteger(pointer.getValue().substring(0, 2));
+                        int startM = Integer.getInteger(pointer.getValue().substring(3, 5));
+                        do {
+                            pointer = switches.get(++i);
+                        } while (pointer != null && onOffToBoolean(pointer.getState()));
+                        int endH, endM;
+                        if (pointer == null) {
+                            endH = 24;
+                            endM = 0;
+                        }
+                        else {
+                            endH = Integer.getInteger(pointer.getValue().substring(0, 2));
+                            endM = Integer.getInteger(pointer.getValue().substring(3, 5));
+                        }
+                        Period p = new Period(startH, startM, endH, endM);
+                        schedule.addDayPeriod(p);
+                    }
+                }
+                i++;
+            }
+            mWeekSchedule.set(nameToDay(d.getName()).getId(), schedule);
+        }*/
+
+        for (ThermostatListener listener : mListener) {
+            listener.onThermostatUpdate(this);
+        }
+    }
+
+
+
+
 }

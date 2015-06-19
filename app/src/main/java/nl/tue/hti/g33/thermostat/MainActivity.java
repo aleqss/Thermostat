@@ -5,13 +5,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import nl.tue.hti.g33.thermostat.utils.Thermostat;
+import nl.tue.hti.g33.thermostat.utils.ThermostatProvider;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements ThermostatProvider {
+
+    private Thermostat mThermostat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mThermostat = new Thermostat(this);
     }
 
 
@@ -35,5 +41,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public Thermostat provideThermostat() {
+
+        return mThermostat;
     }
 }

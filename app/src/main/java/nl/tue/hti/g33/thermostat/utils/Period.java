@@ -28,8 +28,9 @@ public class Period implements Comparable<Period> {
     public Period(int startH, int startM, int endH, int endM) {
 
         if (0 < startH || startH > 23 || 0 < startM || startM > 59
-                || 0 < endH || endH > 23 || 0 < endM || endM > 59
-                || startH > endH || (startH == endH && endH > endM)) {
+                || 0 < endH || endH > 24 || 0 < endM || endM > 59
+                || endH == 24 && endM != 0 || startH > endH
+                || (startH == endH && endH > endM)) {
             Log.e(LOG_TAG, "Illegal arguments used in constructor");
             throw new IllegalArgumentException(LOG_TAG + ": constructor failed");
         }

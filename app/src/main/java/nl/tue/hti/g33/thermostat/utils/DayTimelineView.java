@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import nl.tue.hti.g33.thermostat.R;
@@ -17,7 +18,9 @@ import nl.tue.hti.g33.thermostat.R;
  * Consists of a timeline (0-24 h) with areas coloured in two different colours,
  * one for day periods and one for night periods.
  */
-public class DayTimelineView extends View {
+public class DayTimelineView extends View implements ThermostatListener {
+
+    private static final String LOG_TAG = "utils.DayTimelineView";
 
     private int mColorText = Color.BLACK;
     private int mColorGrid = Color.BLACK;
@@ -28,6 +31,8 @@ public class DayTimelineView extends View {
     private Paint mDrawingPaint;
 
     private Iterable<Period> mDayPeriods;
+    private DAY mDayOfTheWeek;
+    private Thermostat mThermostat;
 
     private int mPaddingLeft = getPaddingLeft();
     private int mPaddingTop = getPaddingTop();
@@ -37,19 +42,19 @@ public class DayTimelineView extends View {
     public DayTimelineView(Context context) {
 
         super(context);
-        init(null, 0);
+        init(context, null, 0);
     }
 
     public DayTimelineView(Context context, AttributeSet attrs) {
 
         super(context, attrs);
-        init(attrs, 0);
+        init(context, attrs, 0);
     }
 
     public DayTimelineView(Context context, AttributeSet attrs, int defStyle) {
 
         super(context, attrs, defStyle);
-        init(attrs, defStyle);
+        init(context, attrs, defStyle);
     }
 
     /**
@@ -57,18 +62,29 @@ public class DayTimelineView extends View {
      * @param attrs Attributes (from xml).
      * @param defStyle Styling (from style file).
      */
-    private void init(AttributeSet attrs, int defStyle) {
+    private void init(Context context, AttributeSet attrs, int defStyle) {
+
+        Log.v(LOG_TAG, "INIT STARTED");
+        try {
+            mThermostat = ((ThermostatProvider) context).provideThermostat();
+        } catch (ClassCastException e) {
+            Log.e(LOG_TAG, "Context must implement ThermostatProvider interface!");
+            throw new IllegalArgumentException(LOG_TAG + "Initialisation failed due to" +
+                    "context not implementing ThermostatProvider.");
+        }
 
         // Load attributes
         final TypedArray a = getContext().obtainStyledAttributes(
                 attrs, R.styleable.DayTimelineView, defStyle, 0);
-        DAY dayOfTheWeek = getDayEnum(a.getString(R.styleable.DayTimelineView_dayOfTheWeek));
-        mDayPeriods = Thermostat.getDaySchedule(dayOfTheWeek);
+        mDayOfTheWeek = getDayEnum(a.getString(R.styleable.DayTimelineView_dayOfTheWeek));
         mColorText = a.getColor(R.styleable.DayTimelineView_colorText, mColorText);
         mColorGrid = a.getColor(R.styleable.DayTimelineView_colorGrid, mColorGrid);
         mColorDay = a.getColor(R.styleable.DayTimelineView_colorDay, mColorDay);
         mColorNight = a.getColor(R.styleable.DayTimelineView_colorNight, mColorNight);
         a.recycle();
+
+        mThermostat.addListener(this);
+        mDayPeriods = mThermostat.getDaySchedule(mDayOfTheWeek);
 
         // Set up a default TextPaint object
         mTextPaint = new TextPaint();
@@ -79,7 +95,9 @@ public class DayTimelineView extends View {
         // Set up the paint for the drawing;
         mDrawingPaint = new Paint();
 
+        Log.v(LOG_TAG, "Finished init");
         setClickable(true);
+        postInvalidate();
     }
 
     /**
@@ -258,5 +276,12 @@ public class DayTimelineView extends View {
             default:
                 return null;
         }
+    }
+
+    @Override
+    public void onThermostatUpdate(Thermostat thermostat) {
+
+        mDayPeriods = thermostat.getDaySchedule(mDayOfTheWeek);
+        postInvalidate();
     }
 }
