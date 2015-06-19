@@ -5,5 +5,5 @@ package nl.tue.hti.g33.thermostat.utils;
  */
 public interface ThermostatProvider {
 
-    public Thermostat provideThermostat();
+    Thermostat provideThermostat();
 }

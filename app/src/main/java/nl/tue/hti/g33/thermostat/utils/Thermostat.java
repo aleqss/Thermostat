@@ -33,9 +33,6 @@ public class Thermostat extends BroadcastReceiver {
     private boolean mWeekScheduleOn;
     private int mTime;
     private DAY mDayOfTheWeek;
-    // TODO: get time from server
-    // TODO: Download data from the server
-    // TODO: Fire up the modified event on every update
 
     private boolean mFahrenheit = false;
     
@@ -78,7 +75,7 @@ public class Thermostat extends BroadcastReceiver {
     public void updateDayTemperature(double temperature) {
 
         mDayTemperature = new Temperature(temperature, mFahrenheit);
-        uploadServer();
+        uploadServer("day_temperature");
     }
 
     /**
@@ -88,7 +85,7 @@ public class Thermostat extends BroadcastReceiver {
     public void updateNightTemperature(double temperature) {
 
         mNightTemperature = new Temperature(temperature, mFahrenheit);
-        uploadServer();
+        uploadServer("night_temperature");
     }
 
     /**
@@ -101,7 +98,7 @@ public class Thermostat extends BroadcastReceiver {
 
         DaySchedule schedule = mWeekSchedule.get(dayOfTheWeek.getId());
         schedule.addDayPeriod(dayPeriod);
-        uploadServer();
+        uploadServer("week_program");
     }
 
     /**
@@ -114,7 +111,7 @@ public class Thermostat extends BroadcastReceiver {
 
         DaySchedule schedule = mWeekSchedule.get(dayOfTheWeek.getId());
         schedule.deleteDayPeriod(dayPeriod);
-        uploadServer();
+        uploadServer("week_program");
     }
 
     /**
@@ -127,7 +124,7 @@ public class Thermostat extends BroadcastReceiver {
             mTargetTemperature = temperature;
         }
         mWeekScheduleOn = !on;
-        uploadServer();
+        uploadServer("week_program_state");
     }
 
     /**
@@ -137,7 +134,7 @@ public class Thermostat extends BroadcastReceiver {
     public void setTemporaryOverride(Temperature temperature) {
 
         mTargetTemperature = temperature;
-        uploadServer();
+        uploadServer("target_temperature");
     }
 
     public int getCurrentTime() {
@@ -207,8 +204,22 @@ public class Thermostat extends BroadcastReceiver {
         mContext.startService(serviceIntent);
     }
 
-    private void uploadServer() {
-        // TODO: magic
+    private void uploadServer(String uploadOption) {
+
+        ParsedThermostat copy = new ParsedThermostat();
+        copy.mWeekSchedule = mWeekSchedule;
+        copy.mWeekScheduleOn = mWeekScheduleOn;
+        copy.mNightTemperature = mNightTemperature;
+        copy.mDayTemperature = mDayTemperature;
+        copy.mTargetTemperature = mTargetTemperature;
+
+        Intent serviceIntent = new Intent();
+        Bundle bundle = new Bundle();
+        bundle.putString("mode", "PUT");
+        bundle.putString("upload", uploadOption);
+        bundle.putSerializable("thermostat", copy);
+        serviceIntent.putExtras(bundle);
+        mContext.startService(serviceIntent);
     }
 
     /**
@@ -223,6 +234,7 @@ public class Thermostat extends BroadcastReceiver {
 
         Bundle extras = intent.getExtras();
         ParsedThermostat root = (ParsedThermostat) extras.getSerializable("root");
+
         mCurrentTemperature = root.mCurrentTemperature;
         mTargetTemperature = root.mTargetTemperature;
         mDayTemperature = root.mDayTemperature;
@@ -232,59 +244,8 @@ public class Thermostat extends BroadcastReceiver {
         mWeekScheduleOn = root.mWeekScheduleOn;
         mWeekSchedule = root.mWeekSchedule;
 
-
-        /*ThermostatType root =
-                ((ArrayList<ThermostatType>) extras.getSerializable("rootList")).get(0);
-
-        mCurrentTemperature = new Temperature(root.getCurrentTemperature().doubleValue(), false);
-        mTargetTemperature = new Temperature(root.getTargetTemperature().doubleValue(), false);
-        mDayTemperature = new Temperature(root.getDayTemperature().doubleValue(), false);
-        mNightTemperature = new Temperature(root.getNightTemperature().doubleValue(), false);
-
-        mDayOfTheWeek = nameToDay(root.getCurrentDay());
-        mTime = Integer.getInteger(root.getTime().substring(0, 2)) *60
-                + Integer.getInteger(root.getTime().substring(3, 5));
-
-        mWeekScheduleOn = onOffToBoolean(root.getWeekProgramState());
-        mWeekSchedule = new ArrayList<>(7);
-
-        for (Day d : root.getWeekProgram().getDay()) {
-            DaySchedule schedule = new DaySchedule();
-            List<Day.Switch> switches = d.getSwitch();
-            Day.Switch pointer;
-            int i = 0;
-            while ((pointer = switches.get(i)) != null) {
-                if (onOffToBoolean(pointer.getState())) {
-                    if (pointer.getType().equals("day")) {
-                        int startH = Integer.getInteger(pointer.getValue().substring(0, 2));
-                        int startM = Integer.getInteger(pointer.getValue().substring(3, 5));
-                        do {
-                            pointer = switches.get(++i);
-                        } while (pointer != null && onOffToBoolean(pointer.getState()));
-                        int endH, endM;
-                        if (pointer == null) {
-                            endH = 24;
-                            endM = 0;
-                        }
-                        else {
-                            endH = Integer.getInteger(pointer.getValue().substring(0, 2));
-                            endM = Integer.getInteger(pointer.getValue().substring(3, 5));
-                        }
-                        Period p = new Period(startH, startM, endH, endM);
-                        schedule.addDayPeriod(p);
-                    }
-                }
-                i++;
-            }
-            mWeekSchedule.set(nameToDay(d.getName()).getId(), schedule);
-        }*/
-
         for (ThermostatListener listener : mListener) {
             listener.onThermostatUpdate(this);
         }
     }
-
-
-
-
 }

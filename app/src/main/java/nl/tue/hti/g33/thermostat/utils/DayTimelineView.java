@@ -76,7 +76,7 @@ public class DayTimelineView extends View implements ThermostatListener {
         // Load attributes
         final TypedArray a = getContext().obtainStyledAttributes(
                 attrs, R.styleable.DayTimelineView, defStyle, 0);
-        mDayOfTheWeek = getDayEnum(a.getString(R.styleable.DayTimelineView_dayOfTheWeek));
+        mDayOfTheWeek = DAY.getByShortName(a.getString(R.styleable.DayTimelineView_dayOfTheWeek));
         mColorText = a.getColor(R.styleable.DayTimelineView_colorText, mColorText);
         mColorGrid = a.getColor(R.styleable.DayTimelineView_colorGrid, mColorGrid);
         mColorDay = a.getColor(R.styleable.DayTimelineView_colorDay, mColorDay);
@@ -249,32 +249,6 @@ public class DayTimelineView extends View implements ThermostatListener {
         for (int i = 1; i <= 23; i += 2) {
             canvas.drawText(Integer.valueOf(i).toString(),
                     (int) (i * width / 24.0), height, mTextPaint);
-        }
-    }
-
-    /**
-     * Get the {@code DAY} value from a string
-     * @param day String representing a day of the week.
-     * @return Corresponding {@code DAY} of the week.
-     */
-    private DAY getDayEnum(String day) {
-        switch (day) {
-            case "Mon":
-                return DAY.MON;
-            case "Tue":
-                return DAY.TUE;
-            case "Wed":
-                return DAY.WED;
-            case "Thu":
-                return DAY.THU;
-            case "Fri":
-                return DAY.FRI;
-            case "Sat":
-                return DAY.SAT;
-            case "Sun":
-                return DAY.SUN;
-            default:
-                return null;
         }
     }
 

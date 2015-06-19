@@ -6,5 +6,5 @@ package nl.tue.hti.g33.thermostat.utils;
  */
 public interface ThermostatListener {
 
-    public void onThermostatUpdate(Thermostat thermostat);
+    void onThermostatUpdate(Thermostat thermostat);
 }

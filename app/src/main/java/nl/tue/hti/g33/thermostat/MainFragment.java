@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,14 +17,23 @@ import com.example.android.common.view.SlidingTabLayout;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.tue.hti.g33.thermostat.utils.Thermostat;
+import nl.tue.hti.g33.thermostat.utils.ThermostatProvider;
+
 /**
  * A simple {@link android.support.v4.app.Fragment} subclass.
  */
-public class MainFragment extends Fragment {
+public class MainFragment extends Fragment implements ThermostatProvider {
 
     private static HomeFragment home = null;
     private static WeekScheduleFragment weekSchedule = null;
     private static VacationModeFragment vacationMode = null;
+
+    @Override
+    public Thermostat provideThermostat() {
+
+        return mThermostat;
+    }
 
     static class TabPagerItem {
 
@@ -77,6 +87,10 @@ public class MainFragment extends Fragment {
 
     private List<TabPagerItem> mTabs = new ArrayList<>();
 
+    private Thermostat mThermostat;
+
+    private static final String LOG_TAG = "MainFragment";
+
     public MainFragment() {
         // Required empty public constructor
     }
@@ -84,6 +98,14 @@ public class MainFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        try {
+            mThermostat = ((ThermostatProvider) getActivity()).provideThermostat();
+        } catch (ClassCastException e) {
+            Log.e(LOG_TAG, "Context must implement ThermostatProvider interface!");
+            throw new IllegalArgumentException(LOG_TAG + "Initialisation failed due to" +
+                    "context not implementing ThermostatProvider.");
+        }
 
         mTabs.add(new TabPagerItem(
                 getString(R.string.tab_home), // Title

@@ -5,9 +5,11 @@ import android.util.Xml;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 
 import nl.tue.hti.g33.thermostat.utils.DAY;
@@ -16,20 +18,19 @@ import nl.tue.hti.g33.thermostat.utils.Period;
 import nl.tue.hti.g33.thermostat.utils.Temperature;
 
 /**
- * Make use of JAXB annotated classes generated from schema.xsd.
- * Parse the xml as an input stream according to that schema.
- * Return result as a packed object.
- * @author Alex, 18.06.2015.
+ * @author Alex, 19.06.2015.
  */
-public class XmlToJavaParser {
+public class XmlParser {
 
-    private static final String LOG_TAG = "parser.XmlToJavaParser";
+    private static final String LOG_TAG = "parser.XmlParser";
 
     private XmlPullParser parser;
+    private XmlSerializer serializer;
 
-    public XmlToJavaParser() {
+    public XmlParser() {
 
         parser = Xml.newPullParser();
+        serializer = Xml.newSerializer();
     }
 
     public ParsedThermostat parse(InputStream inputStream) {
@@ -53,6 +54,56 @@ public class XmlToJavaParser {
         return null;
     }
 
+    public String serialize(ParsedThermostat thermostat) {
+
+        StringWriter writer = new StringWriter();
+        try {
+            serializer.setOutput(writer);
+            serializer.startTag(null, "week_program");
+            serializer.attribute(null, "state", (thermostat.mWeekScheduleOn ? "on" : "off"));
+            int dayId = 0;
+            for (DaySchedule d : thermostat.mWeekSchedule) {
+                serializer.startTag(null, "day");
+                serializer.attribute(null, "name", DAY.getById(dayId).getFullName());
+                int switchCnt = 10;
+                for (Period p : d.getSchedule()) {
+                    String day = Integer.toString(p.getStartingTimeH()) + ":"
+                            + Integer.toString(p.getStartingTimeM());
+                    serializer.startTag(null, "switch");
+                    serializer.attribute(null, "type", "day");
+                    serializer.attribute(null, "state", "on");
+                    serializer.text(day);
+                    serializer.endTag(null, "switch");
+                    switchCnt--;
+                    String night = Integer.toString(p.getEndTimeH()) + ":"
+                            + Integer.toString(p.getEndTimeM());
+                    if (!night.equals("24:00")) {
+                        serializer.startTag(null, "switch");
+                        serializer.attribute(null, "type", "night");
+                        serializer.attribute(null, "state", "on");
+                        serializer.text(night);
+                        serializer.endTag(null, "switch");
+                        switchCnt--;
+                    }
+                }
+                while (switchCnt > 0) {
+                    serializer.startTag(null, "switch");
+                    serializer.attribute(null, "type", (switchCnt % 2 == 0 ? "day" : "night"));
+                    serializer.attribute(null, "state", "off");
+                    serializer.text("23:59");
+                    serializer.endTag(null, "switch");
+                }
+                serializer.endTag(null, "day");
+                dayId++;
+            }
+            serializer.endTag(null, "week_program");
+            return writer.toString();
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Week Program serialization failed.");
+        }
+        return null;
+    }
+
     private ParsedThermostat readThermostat(XmlPullParser parser)
             throws IOException, XmlPullParserException {
 
@@ -64,32 +115,33 @@ public class XmlToJavaParser {
                 continue;
             }
             String name = parser.getName();
-            if (name.equals("current_day")) {
-                thermostat.mDayOfTheWeek = readDay(parser);
-            }
-            else if (name.equals("time")) {
-                thermostat.mTime = readTime(parser);
-            }
-            else if (name.equals("current_temperature")) {
-                thermostat.mCurrentTemperature = readCurrentTemperature(parser);
-            }
-            else if (name.equals("target_temperature")) {
-                thermostat.mTargetTemperature = readTargetTemperature(parser);
-            }
-            else if (name.equals("day_temperature")) {
-                thermostat.mDayTemperature = readDayTemperature(parser);
-            }
-            else if (name.equals("night_temperature")) {
-                thermostat.mNightTemperature = readNightTemperature(parser);
-            }
-            else if (name.equals("week_program_state")) {
-                thermostat.mWeekScheduleOn = readWeekProgramState(parser);
-            }
-            else if (name.equals("week_program")) {
-                thermostat.mWeekSchedule = readWeekProgram(parser);
-            }
-            else {
-                throw new XmlPullParserException("Ill-formed XML given to parse");
+            switch (name) {
+                case "current_day":
+                    thermostat.mDayOfTheWeek = readDay(parser);
+                    break;
+                case "time":
+                    thermostat.mTime = readTime(parser);
+                    break;
+                case "current_temperature":
+                    thermostat.mCurrentTemperature = readCurrentTemperature(parser);
+                    break;
+                case "target_temperature":
+                    thermostat.mTargetTemperature = readTargetTemperature(parser);
+                    break;
+                case "day_temperature":
+                    thermostat.mDayTemperature = readDayTemperature(parser);
+                    break;
+                case "night_temperature":
+                    thermostat.mNightTemperature = readNightTemperature(parser);
+                    break;
+                case "week_program_state":
+                    thermostat.mWeekScheduleOn = readWeekProgramState(parser);
+                    break;
+                case "week_program":
+                    thermostat.mWeekSchedule = readWeekProgram(parser);
+                    break;
+                default:
+                    throw new XmlPullParserException("Ill-formed XML given to parse");
             }
         }
         return thermostat;
@@ -100,7 +152,7 @@ public class XmlToJavaParser {
         parser.require(XmlPullParser.START_TAG, null, "current_day");
         String day = readText(parser);
         parser.require(XmlPullParser.END_TAG, null, "current_day");
-        return nameToDay(day);
+        return DAY.getByName(day);
     }
 
     private int readTime(XmlPullParser parser) throws IOException, XmlPullParserException {
@@ -186,6 +238,7 @@ public class XmlToJavaParser {
                 switches.add(dayNightSwitch);
             }
             else {
+                //noinspection StatementWithEmptyBody
                 while (parser.next() != XmlPullParser.END_TAG);
             }
             parser.require(XmlPullParser.END_TAG, null, "switch");
@@ -193,8 +246,21 @@ public class XmlToJavaParser {
         parser.require(XmlPullParser.END_TAG, null, "day");
         int l = switches.size();
         for (int i = 0; i < l; i += 2) {
-
+            String s = switches.get(i);
+            int startH = Integer.getInteger(s.substring(0, 2));
+            int startM = Integer.getInteger(s.substring(3, 5));
+            int endH, endM;
+            s = switches.get(i+1);
+            if (s != null) {
+                endH = Integer.getInteger(s.substring(0, 2));
+                endM = Integer.getInteger(s.substring(3, 5));
+            }
+            else {
+                endH = 24;
+                endM = 0;
+            }
             Period dayPeriod = new Period(startH, startM, endH, endM);
+            schedule.addDayPeriod(dayPeriod);
         }
         return schedule;
     }
@@ -209,44 +275,8 @@ public class XmlToJavaParser {
         return result;
     }
 
-    private DAY nameToDay(String day) {
-        switch (day) {
-            case "Monday":
-                return DAY.MON;
-            case "Tuesday":
-                return DAY.TUE;
-            case "Wednesday":
-                return DAY.WED;
-            case "Thursday":
-                return DAY.THU;
-            case "Friday":
-                return DAY.FRI;
-            case "Saturday":
-                return DAY.SAT;
-            case "Sunday":
-                return DAY.SUN;
-            default:
-                Log.e(LOG_TAG, "Days of the week went wrong");
-                throw new IllegalArgumentException(LOG_TAG + day);
-        }
-    }
-
     private boolean onOffToBoolean(String s) {
 
         return s.equals("on");
     }
-
-    /*public ThermostatType parse(InputStream inputStream) {
-
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            JAXBElement<ThermostatType> unmarshalledObject =
-                    (JAXBElement<ThermostatType>) unmarshaller.unmarshal(inputStream);
-            return unmarshalledObject.getValue();
-        } catch (JAXBException e) {
-            Log.e(LOG_TAG, "Parser error: something wrong with xml");
-        }
-        return null;
-    }*/
 }
