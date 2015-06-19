@@ -43,6 +43,7 @@ public class Thermostat extends BroadcastReceiver {
     public Thermostat() {
 
         Log.e(LOG_TAG, "This should not be called.");
+        // TODO: This IS called. Do something about BroadcastReceiver.
     }
 
     public Thermostat(Context context) {

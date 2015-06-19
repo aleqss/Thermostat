@@ -160,8 +160,9 @@ public class XmlParser {
         parser.require(XmlPullParser.START_TAG, null, "time");
         String time = readText(parser);
         parser.require(XmlPullParser.END_TAG, null, "time");
-        return Integer.getInteger(time.substring(0, 2)) *60
-                + Integer.getInteger(time.substring(3, 5));
+        Log.v(LOG_TAG, "time parsed: " + time);
+        return Integer.parseInt(time.substring(0, 2)) *60
+                + Integer.parseInt(time.substring(3, 5));
     }
 
     private Temperature readCurrentTemperature(XmlPullParser parser)
