@@ -1,10 +1,10 @@
 package nl.tue.hti.g33.thermostat.utils;
 
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ import nl.tue.hti.g33.thermostat.service.WebService;
  * additional service to fetch / upload data from the server.
  * @author Alex, 17.06.2015.
  */
-public class Thermostat extends BroadcastReceiver {
+public class Thermostat {
 
     private static final String LOG_TAG = "utils.Thermostat";
 
@@ -38,13 +38,11 @@ public class Thermostat extends BroadcastReceiver {
     
     private ArrayList<ThermostatListener> mListener;
     private Context mContext;
-    private Timer timer;
+    private Timer mTimer;
 
-    public Thermostat() {
-
-        Log.e(LOG_TAG, "This should not be called.");
-        // TODO: This IS called. Do something about BroadcastReceiver.
-    }
+    private ServiceConnection mConnection;
+    private WebService mService;
+    private boolean mBound;
 
     public Thermostat(Context context) {
 
@@ -54,8 +52,28 @@ public class Thermostat extends BroadcastReceiver {
         for (int i = 0; i < 7; i++) {
             mWeekSchedule.add(new DaySchedule());
         }
-        timer = new Timer("WebFetcher", true);
-        timer.schedule(new TimerTask() {
+
+        mBound = false;
+        mConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+
+                WebService.LocalBinder binder = (WebService.LocalBinder) service;
+                mService = binder.getService();
+                mBound = true;
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+
+                mBound = false;
+            }
+        };
+        Intent serviceIntent = new Intent(mContext, WebService.class);
+        mContext.bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
+
+        mTimer = new Timer("WebFetcher", true);
+        mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
 
@@ -195,58 +213,40 @@ public class Thermostat extends BroadcastReceiver {
 
     private void downloadServer() {
 
-        Intent broadcastReceiver = new Intent(mContext, Thermostat.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, 0, broadcastReceiver, 0);
-        Bundle bundle = new Bundle();
-        bundle.putParcelable("receiver", pendingIntent);
-        bundle.putString("mode", "GET");
-        Intent serviceIntent = new Intent(mContext, WebService.class);
-        serviceIntent.putExtras(bundle);
-        mContext.startService(serviceIntent);
+        if (mBound) {
+            // TODO: use asynctask?
+            ParsedThermostat root = mService.getData();
+            if (root == null) {
+                Log.w(LOG_TAG, "Oops, Parsed Thermostat is null :(");
+            }
+
+            mCurrentTemperature = root.mCurrentTemperature;
+            mTargetTemperature = root.mTargetTemperature;
+            mDayTemperature = root.mDayTemperature;
+            mNightTemperature = root.mNightTemperature;
+            mDayOfTheWeek = root.mDayOfTheWeek;
+            mTime = root.mTime;
+            mWeekScheduleOn = root.mWeekScheduleOn;
+            mWeekSchedule = root.mWeekSchedule;
+
+            for (ThermostatListener listener : mListener) {
+                listener.onThermostatUpdate(this);
+            }
+        }
     }
 
     private void uploadServer(String uploadOption) {
 
-        ParsedThermostat copy = new ParsedThermostat();
-        copy.mWeekSchedule = mWeekSchedule;
-        copy.mWeekScheduleOn = mWeekScheduleOn;
-        copy.mNightTemperature = mNightTemperature;
-        copy.mDayTemperature = mDayTemperature;
-        copy.mTargetTemperature = mTargetTemperature;
+        if (mBound) {
+            // TODO: use asynctask!
+            ParsedThermostat copy = new ParsedThermostat();
+            copy.mWeekSchedule = mWeekSchedule;
+            copy.mWeekScheduleOn = mWeekScheduleOn;
+            copy.mNightTemperature = mNightTemperature;
+            copy.mDayTemperature = mDayTemperature;
+            copy.mTargetTemperature = mTargetTemperature;
 
-        Intent serviceIntent = new Intent();
-        Bundle bundle = new Bundle();
-        bundle.putString("mode", "PUT");
-        bundle.putString("upload", uploadOption);
-        bundle.putSerializable("thermostat", copy);
-        serviceIntent.putExtras(bundle);
-        mContext.startService(serviceIntent);
-    }
-
-    /**
-     * This method is called when the BroadcastReceiver is receiving an Intent
-     * broadcast.  During this time you can use the other methods on
-     * BroadcastReceiver to view/modify the current result values.
-     * @param context The Context in which the receiver is running.
-     * @param intent  The Intent being received.
-     */
-    @Override
-    public void onReceive(Context context, Intent intent) {
-
-        Bundle extras = intent.getExtras();
-        ParsedThermostat root = (ParsedThermostat) extras.getSerializable("root");
-
-        mCurrentTemperature = root.mCurrentTemperature;
-        mTargetTemperature = root.mTargetTemperature;
-        mDayTemperature = root.mDayTemperature;
-        mNightTemperature = root.mNightTemperature;
-        mDayOfTheWeek = root.mDayOfTheWeek;
-        mTime = root.mTime;
-        mWeekScheduleOn = root.mWeekScheduleOn;
-        mWeekSchedule = root.mWeekSchedule;
-
-        for (ThermostatListener listener : mListener) {
-            listener.onThermostatUpdate(this);
+            mService.putData(uploadOption, copy);
         }
     }
 }

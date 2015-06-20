@@ -26,5 +26,4 @@ public class VacationModeFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_vacation_mode, container, false);
     }
 
-
 }

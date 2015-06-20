@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 
 import nl.tue.hti.g33.thermostat.R;
@@ -34,10 +35,13 @@ public class DayTimelineView extends View implements ThermostatListener {
     private DAY mDayOfTheWeek;
     private Thermostat mThermostat;
 
-    private int mPaddingLeft = getPaddingLeft();
-    private int mPaddingTop = getPaddingTop();
-    private int mPaddingRight = getPaddingRight();
-    private int mPaddingBottom = getPaddingBottom();
+    private int mPaddingLeft;
+    private int mPaddingTop;
+    private int mPaddingRight;
+    private int mPaddingBottom;
+
+    private final int mTextSizeDp = 12;
+    private final int mPaddingDp = 8;
 
     public DayTimelineView(Context context) {
 
@@ -65,12 +69,14 @@ public class DayTimelineView extends View implements ThermostatListener {
     private void init(Context context, AttributeSet attrs, int defStyle) {
 
         Log.v(LOG_TAG, "INIT STARTED");
-        try {
-            mThermostat = ((ThermostatProvider) context).provideThermostat();
-        } catch (ClassCastException e) {
-            Log.e(LOG_TAG, "Context must implement ThermostatProvider interface!");
-            throw new IllegalArgumentException(LOG_TAG + "Initialisation failed due to" +
-                    "context not implementing ThermostatProvider.");
+        if (!isInEditMode()) {
+            try {
+                mThermostat = ((ThermostatProvider) context).provideThermostat();
+            } catch (ClassCastException e) {
+                Log.e(LOG_TAG, "Context must implement ThermostatProvider interface!");
+                throw new IllegalArgumentException(LOG_TAG + "Initialisation failed due to" +
+                        "context not implementing ThermostatProvider.");
+            }
         }
 
         // Load attributes
@@ -83,14 +89,30 @@ public class DayTimelineView extends View implements ThermostatListener {
         mColorNight = a.getColor(R.styleable.DayTimelineView_colorNight, mColorNight);
         a.recycle();
 
-        mThermostat.addListener(this);
-        mDayPeriods = mThermostat.getDaySchedule(mDayOfTheWeek);
+        int padding= (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mPaddingDp,
+                getResources().getDisplayMetrics());
+
+        setPadding(padding, padding/2, padding, padding/2);
+
+        mPaddingLeft = getPaddingLeft();
+        mPaddingTop = getPaddingTop();
+        mPaddingRight = getPaddingRight();
+        mPaddingBottom = getPaddingBottom();
+
+        if(!isInEditMode()) {
+            mThermostat.addListener(this);
+            mDayPeriods = mThermostat.getDaySchedule(mDayOfTheWeek);
+        }
+
+        int textSize= (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mTextSizeDp,
+                getResources().getDisplayMetrics());
 
         // Set up a default TextPaint object
         mTextPaint = new TextPaint();
         mTextPaint.setColor(mColorText);
         mTextPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
         mTextPaint.setTextAlign(Paint.Align.CENTER);
+        mTextPaint.setTextSize(textSize);
 
         // Set up the paint for the drawing;
         mDrawingPaint = new Paint();
@@ -168,7 +190,7 @@ public class DayTimelineView extends View implements ThermostatListener {
      */
     private int computeHeight(int width) {
 
-        final double ratio = 0.2;
+        final double ratio = 0.12;
         return (int) (width * ratio);
     }
 
@@ -200,7 +222,8 @@ public class DayTimelineView extends View implements ThermostatListener {
      */
     private void drawIntervals(int height, int width, Canvas canvas) {
 
-        Rect area = new Rect(0, 0, width, height);
+        Rect area = new Rect(mPaddingLeft, mPaddingTop,
+                width + mPaddingLeft, height + mPaddingTop);
 
         // Draw the border
         mDrawingPaint.setColor(mColorGrid);
@@ -212,13 +235,15 @@ public class DayTimelineView extends View implements ThermostatListener {
         mDrawingPaint.setStyle(Paint.Style.FILL);
         canvas.drawRect(area, mDrawingPaint);
 
-        // Draw day periods
-        mDrawingPaint.setColor(mColorDay);
-        mDrawingPaint.setStyle(Paint.Style.FILL_AND_STROKE);
-        for (Period p : mDayPeriods) {
-            int left = (int) (width * p.getStartingTime() / (24 * 60.0));
-            int right = (int) (width * p.getEndTime() / (24 * 60.0));
-            canvas.drawRect(left, 0, right, height, mDrawingPaint);
+        if (!isInEditMode()) {
+            // Draw day periods
+            mDrawingPaint.setColor(mColorDay);
+            mDrawingPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+            for (Period p : mDayPeriods) {
+                int left = (int) (width * p.getStartingTime() / (24 * 60.0) + mPaddingLeft);
+                int right = (int) (width * p.getEndTime() / (24 * 60.0) + mPaddingLeft);
+                canvas.drawRect(left, mPaddingTop, right, height + mPaddingTop, mDrawingPaint);
+            }
         }
     }
 
@@ -231,10 +256,11 @@ public class DayTimelineView extends View implements ThermostatListener {
     private void drawGrid(int height, int width, Canvas canvas) {
 
         mDrawingPaint.setColor(mColorGrid);
-        mDrawingPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        mDrawingPaint.setStyle(Paint.Style.STROKE);
+        mDrawingPaint.setStrokeWidth(2);
         for (int i = 0; i <= 24; i++) {
-            int x = (int) (i * width / 24.0);
-            canvas.drawLine(x, 0, x, height, mDrawingPaint);
+            int x = (int) (i * width / 24.0) + mPaddingLeft;
+            canvas.drawLine(x, mPaddingTop, x, height + mPaddingTop, mDrawingPaint);
         }
     }
 
@@ -247,8 +273,8 @@ public class DayTimelineView extends View implements ThermostatListener {
     private void drawSubscript(int height, int width, Canvas canvas) {
 
         for (int i = 1; i <= 23; i += 2) {
-            canvas.drawText(Integer.valueOf(i).toString(),
-                    (int) (i * width / 24.0), height, mTextPaint);
+            canvas.drawText((i < 10 ? "0" : "") + Integer.valueOf(i).toString(),
+                    (int) (i * width / 24.0) + mPaddingLeft, height + mPaddingTop, mTextPaint);
         }
     }
 

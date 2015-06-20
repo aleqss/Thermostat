@@ -1,11 +1,11 @@
 package nl.tue.hti.g33.thermostat.service;
 
-import android.app.IntentService;
-import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;
+import android.os.Binder;
+import android.os.IBinder;
 import android.util.Log;
 
 import java.io.IOException;
@@ -22,7 +22,7 @@ import nl.tue.hti.g33.thermostat.parser.XmlParser;
  * Service used to send / fetch data
  * @author Alex on 18.06.2015.
  */
-public class WebService extends IntentService {
+public class WebService extends Service {
 
     private static final String LOG_TAG = "service.WebService";
 
@@ -43,51 +43,57 @@ public class WebService extends IntentService {
     private Uri.Builder mUriBuilder;
     private XmlParser parser;
 
+    private final IBinder mBinder;
+
+    public class LocalBinder extends Binder {
+
+        public WebService getService() {
+
+            return WebService.this;
+        }
+    }
+
     /**
      * Creates an IntentService.
      */
     public WebService() {
 
-        super("WebService");
+        super();
         mUriBuilder = new Uri.Builder();
         parser = new XmlParser();
+        mBinder = new LocalBinder();
     }
 
     /**
-     * This method is invoked on the worker thread with a request to process.
-     * Only one Intent is processed at a time, but the processing happens on a
-     * worker thread that runs independently from other application logic.
-     * So, if this code takes a long time, it will hold up other requests to
-     * the same IntentService, but it will not hold up anything else.
-     * When all requests have been handled, the IntentService stops itself,
-     * so you should not call {@link #stopSelf}.
+     * Return the communication channel to the service.  May return null if
+     * clients can not bind to the service.  The returned
+     * {@link IBinder} is usually for a complex interface
+     * that has been <a href="{@docRoot}guide/components/aidl.html">described using
+     * aidl</a>.
+     * <p/>
+     * <p><em>Note that unlike other application components, calls on to the
+     * IBinder interface returned here may not happen on the main thread
+     * of the process</em>.  More information about the main thread can be found in
+     * <a href="{@docRoot}guide/topics/fundamentals/processes-and-threads.html">Processes and
+     * Threads</a>.</p>
      *
-     * @param intent The value passed to {@link
-     *               Context#startService(Intent)}.
+     * @param intent The Intent that was used to bind to this service,
+     *               as given to {@link Context#bindService
+     *               Context.bindService}.  Note that any extras that were included with
+     *               the Intent at that point will <em>not</em> be seen here.
+     * @return Return an IBinder through which clients can call on to the
+     * service.
      */
     @Override
-    protected void onHandleIntent(Intent intent) {
+    public IBinder onBind(Intent intent) {
 
-        String action = intent.getExtras().getString(MODE);
-        switch (action) {
-            case "GET":
-                getData(intent);
-                break;
-            case "PUT":
-                putData(intent);
-                break;
-            default:
-                Log.w(LOG_TAG, "Wrong mode passed on in intent.");
-        }
-        mUriBuilder.path("");
+        return mBinder;
     }
 
-    private void getData(Intent intent) {
+    public ParsedThermostat getData() {
 
-        Bundle extras = intent.getExtras();
-        PendingIntent pendingIntent = extras.getParcelable("receiver");
-
-        mUriBuilder.scheme("http").authority(preferredURL).appendPath(COURSE_URL);
+        Log.v(LOG_TAG, "Getting data");
+        mUriBuilder.scheme("http").authority(preferredURL).path(COURSE_URL);
         mUriBuilder.appendPath(THERMOSTAT_ID).appendPath("");
         HttpURLConnection connection = null; // TODO: fix malformed url
 
@@ -104,28 +110,22 @@ public class WebService extends IntentService {
                 }
                 else {
                     preferredURL = BACKUP_URL;
-                    return; //TODO: PendingIntent?
+                    Log.w(LOG_TAG, "Did not get status 200/404—some error here");
+                    return null;
                 }
             }
 
             InputStream inputStream = connection.getInputStream();
             if (inputStream == null) {
+                Log.w(LOG_TAG, "Something is wrong with the website");
                 preferredURL = BACKUP_URL;
-                return; // TODO: what do we do with the PendingIntent here?
+                return null;
             }
-
-            ParsedThermostat root = parser.parse(inputStream);
-            try {
-                Intent result = new Intent();
-                extras = new Bundle();
-                extras.putSerializable("root", root);
-                result.putExtras(extras);
-                pendingIntent.send(getApplicationContext(), 0, result);
-            } catch (PendingIntent.CanceledException e) {
-                Log.e(LOG_TAG, "Failed to return data");
-            }
+            Log.v(LOG_TAG, "About to parse data, should return soon");
+            return parser.parse(inputStream);
         } catch (IOException e) {
             Log.e(LOG_TAG, "Fetching data failed: " + e);
+            return null;
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -133,12 +133,9 @@ public class WebService extends IntentService {
         }
     }
 
-    private void putData(Intent intent) {
+    public void putData(String update, ParsedThermostat thermostat) {
 
-        String update = intent.getStringExtra("upload");
-        ParsedThermostat thermostat = (ParsedThermostat) intent.getSerializableExtra("thermostat");
-
-        mUriBuilder.scheme("http").authority(preferredURL).appendPath(COURSE_URL);
+        mUriBuilder.scheme("http").authority(preferredURL).path(COURSE_URL);
         mUriBuilder.appendPath(THERMOSTAT_ID);
         String toSend;
         switch (update) {

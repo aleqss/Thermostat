@@ -43,6 +43,7 @@ public class MainFragment extends Fragment implements ThermostatProvider {
         private Fragment mContext;
 
         TabPagerItem(CharSequence title, int indicatorColor, int dividerColor, Fragment context) {
+
             mTitle = title;
             mIndicatorColor = indicatorColor;
             mDividerColor = dividerColor;
@@ -50,6 +51,7 @@ public class MainFragment extends Fragment implements ThermostatProvider {
         }
 
         Fragment createFragment() {
+
             if (mTitle == mContext.getString(R.string.tab_home)) {
                 if (home == null)
                     return (home = new HomeFragment());
@@ -69,14 +71,17 @@ public class MainFragment extends Fragment implements ThermostatProvider {
         }
 
         CharSequence getTitle() {
+
             return mTitle;
         }
 
         int getIndicatorColor() {
+
             return mIndicatorColor;
         }
 
         int getDividerColor() {
+
             return mDividerColor;
         }
     }
@@ -92,11 +97,13 @@ public class MainFragment extends Fragment implements ThermostatProvider {
     private static final String LOG_TAG = "MainFragment";
 
     public MainFragment() {
+
         // Required empty public constructor
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
 
         try {
@@ -116,7 +123,7 @@ public class MainFragment extends Fragment implements ThermostatProvider {
 
         mTabs.add(new TabPagerItem(
                 getString(R.string.tab_week_schedule), // Title
-                Color.RED, // Indicator color
+                Color.rgb(0x22, 0x8b, 0x22), // Indicator color
                 Color.GRAY, // Divider color
                 this
         ));
@@ -132,11 +139,13 @@ public class MainFragment extends Fragment implements ThermostatProvider {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         return inflater.inflate(R.layout.fragment_main, container, false);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+
         // Get the ViewPager and set it's PagerAdapter so that it can display items
         mViewPager = (ViewPager) view.findViewById(R.id.view_pager);
         mViewPager.setAdapter(new TabsFragmentPagerAdapter(getChildFragmentManager()));
@@ -152,11 +161,13 @@ public class MainFragment extends Fragment implements ThermostatProvider {
 
             @Override
             public int getIndicatorColor(int position) {
+
                 return mTabs.get(position).getIndicatorColor();
             }
 
             @Override
             public int getDividerColor(int position) {
+
                 return mTabs.get(position).getDividerColor();
             }
 
@@ -166,21 +177,25 @@ public class MainFragment extends Fragment implements ThermostatProvider {
     class TabsFragmentPagerAdapter extends FragmentPagerAdapter {
 
         TabsFragmentPagerAdapter(FragmentManager fm) {
+
             super(fm);
         }
 
         @Override
         public Fragment getItem(int i) {
+
             return mTabs.get(i).createFragment();
         }
 
         @Override
         public int getCount() {
+
             return mTabs.size();
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
+
             return mTabs.get(position).getTitle();
         }
     }

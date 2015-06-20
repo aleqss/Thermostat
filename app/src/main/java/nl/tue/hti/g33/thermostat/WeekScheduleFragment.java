@@ -45,7 +45,6 @@ public class WeekScheduleFragment extends Fragment implements ThermostatProvider
         return inflater.inflate(R.layout.fragment_week_schedule, container, false);
     }
 
-
     @Override
     public Thermostat provideThermostat() {
 
