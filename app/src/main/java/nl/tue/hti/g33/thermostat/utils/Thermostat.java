@@ -25,6 +25,8 @@ public class Thermostat {
 
     private static final String LOG_TAG = "utils.Thermostat";
 
+    private static Thermostat instance;
+
     private ArrayList<DaySchedule> mWeekSchedule;
     private Temperature mDayTemperature;
     private Temperature mNightTemperature;
@@ -80,6 +82,13 @@ public class Thermostat {
                 downloadServer();
             }
         }, 0, 2000);
+
+        instance = this;
+    }
+
+    public static Thermostat getInstance() {
+
+        return instance;
     }
 
     public void addListener(ThermostatListener listener) {

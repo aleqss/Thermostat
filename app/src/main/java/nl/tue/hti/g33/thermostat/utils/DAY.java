@@ -1,10 +1,12 @@
 package nl.tue.hti.g33.thermostat.utils;
 
+import java.io.Serializable;
+
 /**
  * Days of the week enumeration.
  * @author Alex, 17.06.2015.
  */
-public enum DAY {
+public enum DAY implements Serializable{
 
     MON(0, "Monday", "mon"),
     TUE(1, "Tuesday", "tue"),

@@ -1,4 +1,4 @@
-package nl.tue.hti.g33.thermostat.utils;
+package nl.tue.hti.g33.thermostat.widgets;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -13,6 +13,11 @@ import android.util.TypedValue;
 import android.view.View;
 
 import nl.tue.hti.g33.thermostat.R;
+import nl.tue.hti.g33.thermostat.utils.DAY;
+import nl.tue.hti.g33.thermostat.utils.Period;
+import nl.tue.hti.g33.thermostat.utils.Thermostat;
+import nl.tue.hti.g33.thermostat.utils.ThermostatListener;
+import nl.tue.hti.g33.thermostat.utils.ThermostatProvider;
 
 /**
  * A small widget representing a timeline for one day.
@@ -61,6 +66,12 @@ public class DayTimelineView extends View implements ThermostatListener {
         init(context, attrs, defStyle);
     }
 
+    public void setDayOfTheWeek(DAY day) {
+
+        mDayOfTheWeek = day;
+        mDayPeriods = mThermostat.getDaySchedule(mDayOfTheWeek);
+    }
+
     /**
      * Initialise the view.
      * @param attrs Attributes (from xml).
@@ -82,7 +93,12 @@ public class DayTimelineView extends View implements ThermostatListener {
         // Load attributes
         final TypedArray a = getContext().obtainStyledAttributes(
                 attrs, R.styleable.DayTimelineView, defStyle, 0);
-        mDayOfTheWeek = DAY.getByShortName(a.getString(R.styleable.DayTimelineView_dayOfTheWeek));
+        if (a.hasValue(R.styleable.DayTimelineView_dayOfTheWeek)) {
+            mDayOfTheWeek = DAY.getByShortName(a.getString(R.styleable.DayTimelineView_dayOfTheWeek));
+        }
+        else {
+            mDayOfTheWeek = DAY.MON;
+        }
         mColorText = a.getColor(R.styleable.DayTimelineView_colorText, mColorText);
         mColorGrid = a.getColor(R.styleable.DayTimelineView_colorGrid, mColorGrid);
         mColorDay = a.getColor(R.styleable.DayTimelineView_colorDay, mColorDay);

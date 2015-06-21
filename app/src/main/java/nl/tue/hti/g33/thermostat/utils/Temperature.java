@@ -1,12 +1,16 @@
 package nl.tue.hti.g33.thermostat.utils;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
+
+import java.io.Serializable;
 
 /**
  * Represents temperature for the thermostat in convenient form.
  * @author Alex, 17.06.2015.
  */
-public class Temperature {
+public class Temperature implements Parcelable, Serializable {
 
     private double mTemperature;
 
@@ -73,5 +77,63 @@ public class Temperature {
     private double roundToTenth(double number) {
 
         return ((int) (number * 10.0)) / 10.0;
+    }
+
+    /**
+     * Describe the kinds of special objects contained in this Parcelable's
+     * marshalled representation.
+     *
+     * @return a bitmask indicating the set of special object types marshalled
+     * by the Parcelable.
+     */
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    /**
+     * Flatten this object in to a Parcel.
+     *
+     * @param dest  The Parcel in which the object should be written.
+     * @param flags Additional flags about how the object should be written.
+     *              May be 0 or {@link #PARCELABLE_WRITE_RETURN_VALUE}.
+     */
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
+        dest.writeDouble(mTemperature);
+    }
+
+    public static final Parcelable.Creator<Temperature> CREATOR = new Parcelable.Creator<Temperature>() {
+
+        /**
+         * Create a new instance of the Parcelable class, instantiating it
+         * from the given Parcel whose data had previously been written by
+         * {@link Parcelable#writeToParcel Parcelable.writeToParcel()}.
+         *
+         * @param source The Parcel to read the object's data from.
+         * @return Returns a new instance of the Parcelable class.
+         */
+        @Override
+        public Temperature createFromParcel(Parcel source) {
+            return new Temperature(source);
+        }
+
+        /**
+         * Create a new array of the Parcelable class.
+         *
+         * @param size Size of the array.
+         * @return Returns an array of the Parcelable class, with every entry
+         * initialized to null.
+         */
+        @Override
+        public Temperature[] newArray(int size) {
+            return new Temperature[size];
+        }
+    };
+
+    private Temperature(Parcel in) {
+
+        mTemperature = in.readDouble();
     }
 }
