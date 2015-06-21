@@ -150,6 +150,7 @@ public class Thermostat {
 
         if (on) {
             mTargetTemperature = temperature;
+            uploadServer("target_temperature");
         }
         mWeekScheduleOn = !on;
         uploadServer("week_program_state");
@@ -223,10 +224,10 @@ public class Thermostat {
     private void downloadServer() {
 
         if (mBound) {
-            // TODO: use asynctask?
             ParsedThermostat root = mService.getData();
             if (root == null) {
                 Log.w(LOG_TAG, "Oops, Parsed Thermostat is null :(");
+                throw new NullPointerException(LOG_TAG + " thermostat update failed");
             }
 
             mCurrentTemperature = root.mCurrentTemperature;
@@ -247,7 +248,6 @@ public class Thermostat {
     private void uploadServer(String uploadOption) {
 
         if (mBound) {
-            // TODO: use asynctask!
             ParsedThermostat copy = new ParsedThermostat();
             copy.mWeekSchedule = mWeekSchedule;
             copy.mWeekScheduleOn = mWeekScheduleOn;

@@ -10,8 +10,6 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -92,7 +90,6 @@ public class WebService extends Service {
 
     public ParsedThermostat getData() {
 
-        Log.v(LOG_TAG, "Getting data");
         mUriBuilder.scheme("http").authority(preferredURL).path(COURSE_URL);
         mUriBuilder.appendPath(THERMOSTAT_ID).appendPath("");
         HttpURLConnection connection = null; // TODO: fix malformed url
@@ -121,7 +118,6 @@ public class WebService extends Service {
                 preferredURL = BACKUP_URL;
                 return null;
             }
-            Log.v(LOG_TAG, "About to parse data, should return soon");
             return parser.parse(inputStream);
         } catch (IOException e) {
             Log.e(LOG_TAG, "Fetching data failed: " + e);
@@ -172,34 +168,6 @@ public class WebService extends Service {
                 Log.e(LOG_TAG, "Wrong request to WebService sender.");
                 throw new IllegalArgumentException(LOG_TAG + "Uploading data impossible.");
         }
-
-        HttpURLConnection connection = null;
-        try {
-            URL url = new URL(mUriBuilder.toString());
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("PUT");
-            connection.connect();
-            int status = connection.getResponseCode();
-
-            if (status != 200) {
-                if (status == 404) {
-                    //TODO: create new thermostat
-                }
-                else {
-                    preferredURL = BACKUP_URL;
-                    return;
-                }
-            }
-
-            OutputStream output = connection.getOutputStream();
-            PrintStream out = new PrintStream(output, true);
-            out.print(toSend);
-        } catch (IOException e) {
-            Log.e(LOG_TAG, "Uploading data failed: " + e);
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
-        }
+        new SendDataTask().execute(toSend, mUriBuilder.toString());
     }
 }

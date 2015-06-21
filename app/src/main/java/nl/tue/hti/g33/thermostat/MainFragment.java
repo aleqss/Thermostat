@@ -129,7 +129,7 @@ public class MainFragment extends Fragment implements ThermostatProvider {
         ));
 
         mTabs.add(new TabPagerItem(
-                getString(R.string.tab_vacation_mode), // Title
+                getString(R.string.tab_temperatures), // Title
                 Color.YELLOW, // Indicator color
                 Color.GRAY, // Divider color
                 this

@@ -59,6 +59,7 @@ public class XmlParser {
 
         StringWriter writer = new StringWriter();
         try {
+            Log.v(LOG_TAG, "serializing");
             serializer.setOutput(writer);
             serializer.startTag(null, "week_program");
             serializer.attribute(null, "state", (thermostat.mWeekScheduleOn ? "on" : "off"));
@@ -93,11 +94,15 @@ public class XmlParser {
                     serializer.attribute(null, "state", "off");
                     serializer.text("23:59");
                     serializer.endTag(null, "switch");
+                    switchCnt--;
                 }
                 serializer.endTag(null, "day");
                 dayId++;
             }
             serializer.endTag(null, "week_program");
+            Log.v(LOG_TAG, "Finished serializing");
+            serializer.flush();
+            writer.flush();
             return writer.toString();
         } catch (IOException e) {
             Log.e(LOG_TAG, "Week Program serialization failed.");
@@ -153,7 +158,6 @@ public class XmlParser {
         parser.require(XmlPullParser.START_TAG, null, "current_day");
         String day = readText(parser);
         parser.require(XmlPullParser.END_TAG, null, "current_day");
-        Log.v(LOG_TAG, "day parsed: " + day);
         return DAY.getByName(day);
     }
 
@@ -162,7 +166,6 @@ public class XmlParser {
         parser.require(XmlPullParser.START_TAG, null, "time");
         String time = readText(parser);
         parser.require(XmlPullParser.END_TAG, null, "time");
-        Log.v(LOG_TAG, "time parsed: " + time);
         return Integer.parseInt(time.substring(0, 2)) *60
                 + Integer.parseInt(time.substring(3, 5));
     }
@@ -173,7 +176,6 @@ public class XmlParser {
         parser.require(XmlPullParser.START_TAG, null, "current_temperature");
         String currentTemperature = readText(parser);
         parser.require(XmlPullParser.END_TAG, null, "current_temperature");
-        Log.v(LOG_TAG, "current temperature parsed: " + currentTemperature);
         return new Temperature(Double.parseDouble(currentTemperature), false);
     }
 
@@ -183,7 +185,6 @@ public class XmlParser {
         parser.require(XmlPullParser.START_TAG, null, "target_temperature");
         String targetTemperature = readText(parser);
         parser.require(XmlPullParser.END_TAG, null, "target_temperature");
-        Log.v(LOG_TAG, "target temperature parsed: " + targetTemperature);
         return new Temperature(Double.parseDouble(targetTemperature), false);
     }
 
@@ -193,7 +194,6 @@ public class XmlParser {
         parser.require(XmlPullParser.START_TAG, null, "day_temperature");
         String dayTemperature = readText(parser);
         parser.require(XmlPullParser.END_TAG, null, "day_temperature");
-        Log.v(LOG_TAG, "day temperature parsed: " + dayTemperature);
         return new Temperature(Double.parseDouble(dayTemperature), false);
     }
 
@@ -203,7 +203,6 @@ public class XmlParser {
         parser.require(XmlPullParser.START_TAG, null, "night_temperature");
         String nightTemperature = readText(parser);
         parser.require(XmlPullParser.END_TAG, null, "night_temperature");
-        Log.v(LOG_TAG, "night temperature parsed: " + nightTemperature);
         return new Temperature(Double.parseDouble(nightTemperature), false);
     }
 
@@ -213,7 +212,6 @@ public class XmlParser {
         parser.require(XmlPullParser.START_TAG, null, "week_program_state");
         String state = readText(parser);
         parser.require(XmlPullParser.END_TAG, null, "week_program_state");
-        Log.v(LOG_TAG, "week program state parsed: " + state);
         return onOffToBoolean(state);
     }
 
@@ -223,14 +221,11 @@ public class XmlParser {
         ArrayList<DaySchedule> weekSchedule = new ArrayList<>();
 
         parser.require(XmlPullParser.START_TAG, null, "week_program");
-        Log.v(LOG_TAG, "Starting to parse week program");
         for (int i = 0; i < 7; i++) {
-            Log.v(LOG_TAG, "About to parse day " + i);
             parser.nextTag();
             DaySchedule schedule = readDayProgram(parser);
             weekSchedule.add(schedule);
         }
-        Log.v(LOG_TAG, "ending parsing week program");
         parser.nextTag();
         parser.require(XmlPullParser.END_TAG, null, "week_program");
         return weekSchedule;
@@ -243,10 +238,8 @@ public class XmlParser {
         ArrayList<String> switches = new ArrayList<>();
         boolean skipNight = true;
         parser.require(XmlPullParser.START_TAG, null, "day");
-        Log.v(LOG_TAG, "Parsing a day");
         for (int i = 0; i < 10; i++) {
             parser.nextTag();
-            Log.v(LOG_TAG, "About to parse switch " + i);
             parser.require(XmlPullParser.START_TAG, null, "switch");
             if (onOffToBoolean(parser.getAttributeValue(null, "state"))
                     && (!skipNight || parser.getAttributeValue(null, "type").equals("day"))) {
@@ -260,7 +253,6 @@ public class XmlParser {
             }
             parser.require(XmlPullParser.END_TAG, null, "switch");
         }
-        Log.v(LOG_TAG, "Finished parsing a day");
         parser.nextTag();
         parser.require(XmlPullParser.END_TAG, null, "day");
         int l = switches.size();

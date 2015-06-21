@@ -15,6 +15,7 @@ import nl.tue.hti.g33.thermostat.utils.ThermostatProvider;
 public class DetailDayActivity extends AppCompatActivity implements ThermostatProvider {
 
     private Thermostat mThermostat;
+    private DAY mDay;
     private Toolbar mToolbar;
 
     private static final String LOG_TAG = "DetailDayActivity";
@@ -30,15 +31,15 @@ public class DetailDayActivity extends AppCompatActivity implements ThermostatPr
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
         String day = bundle.getString("day");
-        DAY dayOfTheWeek = DAY.getByShortName(day);
-        setTitle("Schedule " + dayOfTheWeek.getFullName());
+        mDay = DAY.getByShortName(day);
+        setTitle("Schedule " + mDay.getFullName());
         setSupportActionBar(mToolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
         mThermostat = Thermostat.getInstance();
-        DayScheduleFragment frag = DayScheduleFragment.newInstance(dayOfTheWeek);
+        DayScheduleFragment frag = DayScheduleFragment.newInstance(mDay);
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.container_day_schedule, frag).commit();
     }
@@ -62,6 +63,12 @@ public class DetailDayActivity extends AppCompatActivity implements ThermostatPr
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        }
+
+        if (id == R.id.action_add_switch) {
+
+            AddRuleDialogFragment dialog = AddRuleDialogFragment.newInstance(null, mDay);
+            dialog.show(getSupportFragmentManager(), "Add switch");
         }
 
         return super.onOptionsItemSelected(item);

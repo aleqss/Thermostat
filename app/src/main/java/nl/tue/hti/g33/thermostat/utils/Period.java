@@ -148,8 +148,8 @@ public class Period implements Comparable<Period>, Parcelable, Serializable {
         int end = getEndTime();
         int pEnd = p.getEndTime();
 
-        start = Math.min(start, pStart);
-        end = Math.max(end, pEnd);
+        start = (start < pStart ? start : pStart);
+        end = (end > pEnd ? end : pEnd);
 
         return new Period(start / 60, start % 60, end / 60, end % 60);
     }

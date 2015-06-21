@@ -134,7 +134,7 @@ public class DayTimelineView extends View implements ThermostatListener {
         mDrawingPaint = new Paint();
 
         Log.v(LOG_TAG, "Finished init");
-        setClickable(true);
+        setClickable(false);
         postInvalidate();
     }
 
