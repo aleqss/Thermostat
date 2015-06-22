@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import nl.tue.hti.g33.thermostat.utils.DAY;
 import nl.tue.hti.g33.thermostat.utils.Period;
@@ -71,6 +72,9 @@ public class DetailDayActivity extends AppCompatActivity
             if (cnt < 5) {
                 AddRuleDialogFragment dialog = AddRuleDialogFragment.newInstance(null, mDay);
                 dialog.show(getSupportFragmentManager(), "Add switch");
+            }
+            else {
+                Toast.makeText(this, "You can only add 5 day periods!", Toast.LENGTH_SHORT).show();
             }
         }
 
