@@ -37,6 +37,13 @@ public class DaySchedule implements Serializable {
         Period next = mDayPeriods.ceiling(dayPeriod);
         Period toAdd = dayPeriod;
 
+        if (prev != null) {
+            Log.v(LOG_TAG, "prev "+prev.toString());
+        }
+        if (next != null) {
+            Log.v(LOG_TAG, "next "+next.toString());
+        }
+        Log.v(LOG_TAG, "toAdd "+toAdd.toString());
         if (prev != null && prev.intersects(toAdd)) {
             mDayPeriods.remove(prev);
             toAdd = prev.combine(toAdd);
@@ -51,6 +58,7 @@ public class DaySchedule implements Serializable {
             throw new IllegalArgumentException(LOG_TAG + "Too many switches");
         }
         mDayPeriods.add(toAdd);
+        Log.v(LOG_TAG, toAdd.toString());
     }
 
     /**

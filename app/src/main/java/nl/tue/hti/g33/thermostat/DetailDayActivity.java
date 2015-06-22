@@ -39,9 +39,6 @@ public class DetailDayActivity extends AppCompatActivity
         mDay = DAY.getByShortName(day);
         setTitle("Schedule " + mDay.getFullName());
         setSupportActionBar(mToolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
 
         mThermostat = Thermostat.getInstance();
         mFrag = DayScheduleFragment.newInstance(mDay);
@@ -64,11 +61,6 @@ public class DetailDayActivity extends AppCompatActivity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
 
         if (id == R.id.action_add_switch) {
 

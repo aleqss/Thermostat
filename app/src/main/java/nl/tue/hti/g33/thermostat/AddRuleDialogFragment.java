@@ -101,7 +101,7 @@ public class AddRuleDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
 
         final View view = inflater.inflate(R.layout.fragment_add_rule_dialog, null);
@@ -126,6 +126,7 @@ public class AddRuleDialogFragment extends DialogFragment {
                         end.getCurrentHour(), end.getCurrentMinute());
                 mThermostat.deleteSwitch(mDay, mPeriod);
                 mThermostat.addSwitch(mDay, nPeriod);
+                mListener.onDialogPositiveClick(AddRuleDialogFragment.this);
             }
         })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -133,6 +134,7 @@ public class AddRuleDialogFragment extends DialogFragment {
                     public void onClick(DialogInterface dialog, int which) {
 
                         // Do nothing here - just dismiss
+                        mListener.onDialogNegativeClick(AddRuleDialogFragment.this);
                         AddRuleDialogFragment.this.getDialog().cancel();
                     }
                 });
