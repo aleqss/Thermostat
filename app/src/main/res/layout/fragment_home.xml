@@ -13,6 +13,7 @@
         <NumberPicker
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:descendantFocusability="blocksDescendants"
             android:id="@+id/temperature" />
 
         <TextView
@@ -20,13 +21,20 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="."
-            android:id="@+id/textView"
             android:layout_gravity="center_vertical" />
 
         <NumberPicker
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:descendantFocusability="blocksDescendants"
             android:id="@+id/temperatureD" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="°C"
+            android:layout_gravity="center_vertical" />
 
     </LinearLayout>
     <LinearLayout

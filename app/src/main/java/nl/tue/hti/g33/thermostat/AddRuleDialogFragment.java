@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.TimePicker;
 
 import nl.tue.hti.g33.thermostat.utils.DAY;
@@ -121,12 +122,22 @@ public class AddRuleDialogFragment extends DialogFragment {
 
                 TimePicker start = (TimePicker) view.findViewById(R.id.addStartTime);
                 TimePicker end = (TimePicker) view.findViewById(R.id.addEndTime);
+                CheckBox wholeWeek = (CheckBox) view.findViewById(R.id.whole_week_switch);
 
                 Period nPeriod = new Period(start.getCurrentHour(), start.getCurrentMinute(),
                         end.getCurrentHour(), end.getCurrentMinute());
-                mThermostat.deleteSwitch(mDay, mPeriod);
-                mThermostat.addSwitch(mDay, nPeriod);
-                mListener.onDialogPositiveClick(AddRuleDialogFragment.this);
+                if (wholeWeek.isChecked()) {
+                    for (int i =0; i < 7; i++) {
+                        mThermostat.deleteSwitch(DAY.getById(i), mPeriod);
+                        mThermostat.addSwitch(DAY.getById(i), nPeriod);
+                        mListener.onDialogPositiveClick(AddRuleDialogFragment.this);
+                    }
+                }
+                else {
+                    mThermostat.deleteSwitch(mDay, mPeriod);
+                    mThermostat.addSwitch(mDay, nPeriod);
+                    mListener.onDialogPositiveClick(AddRuleDialogFragment.this);
+                }
             }
         })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {

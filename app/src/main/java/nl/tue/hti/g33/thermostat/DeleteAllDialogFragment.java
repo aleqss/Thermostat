@@ -92,11 +92,13 @@ public class DeleteAllDialogFragment extends DialogFragment {
                         for (Period p : toDel) {
                             mThermostat.deleteSwitch(mDay, p);
                         }
+                        mListener.onDialogPositiveClick(DeleteAllDialogFragment.this);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        mListener.onDialogNegativeClick(DeleteAllDialogFragment.this);
                         DeleteAllDialogFragment.this.getDialog().cancel();
                     }
                 });

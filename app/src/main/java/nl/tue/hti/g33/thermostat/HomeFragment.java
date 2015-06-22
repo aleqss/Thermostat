@@ -63,6 +63,7 @@ public class HomeFragment extends Fragment
         vacationMode.setOnCheckedChangeListener(this);
         temp.setMaxValue(29);
         temp.setMinValue(5);
+        temp.setValue(15);
         tempD.setMaxValue(9);
         tempD.setMinValue(0);
         return root;
