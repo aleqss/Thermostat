@@ -27,7 +27,7 @@ public class MainFragment extends Fragment implements ThermostatProvider {
 
     private static HomeFragment home = null;
     private static WeekScheduleFragment weekSchedule = null;
-    private static VacationModeFragment vacationMode = null;
+    private static TemperaturesFragment temperatures = null;
 
     @Override
     public Thermostat provideThermostat() {
@@ -62,10 +62,10 @@ public class MainFragment extends Fragment implements ThermostatProvider {
                     return (weekSchedule = new WeekScheduleFragment());
                 return weekSchedule;
             }
-            if (mTitle == mContext.getString(R.string.tab_vacation_mode)) {
-                if (vacationMode == null)
-                    return (vacationMode = new VacationModeFragment());
-                return vacationMode;
+            if (mTitle == mContext.getString(R.string.tab_temperatures)) {
+                if (temperatures == null)
+                    return (temperatures = new TemperaturesFragment());
+                return temperatures;
             }
             return null;
         }
@@ -148,6 +148,7 @@ public class MainFragment extends Fragment implements ThermostatProvider {
 
         // Get the ViewPager and set it's PagerAdapter so that it can display items
         mViewPager = (ViewPager) view.findViewById(R.id.view_pager);
+        mViewPager.setOffscreenPageLimit(2);
         mViewPager.setAdapter(new TabsFragmentPagerAdapter(getChildFragmentManager()));
 
         // Give the SlidingTabLayout the ViewPager, this must be done AFTER the ViewPager has had

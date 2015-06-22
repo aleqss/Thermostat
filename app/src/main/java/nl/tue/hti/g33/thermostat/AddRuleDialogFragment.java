@@ -2,6 +2,7 @@ package nl.tue.hti.g33.thermostat;
 
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.Fragment;
@@ -33,6 +34,15 @@ public class AddRuleDialogFragment extends DialogFragment {
     private DAY mDay;
     private String mTitle;
     private Thermostat mThermostat;
+
+    interface AddRuleDialogListener {
+
+        public void onDialogPositiveClick(DialogFragment dialog);
+        public void onDialogNegativeClick(DialogFragment dialog);
+
+    }
+
+    private AddRuleDialogListener mListener;
 
 
     /**
@@ -70,6 +80,20 @@ public class AddRuleDialogFragment extends DialogFragment {
             mTitle = getString(R.string.edit_rule);
         }
         mThermostat = Thermostat.getInstance();
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+
+        super.onAttach(activity);
+
+        try {
+            mListener = (AddRuleDialogListener) activity;
+        } catch (ClassCastException e) {
+            // The activity doesn't implement the interface, throw exception
+            throw new ClassCastException(activity.toString()
+                    + " must implement AddRuleDialogListener");
+        }
     }
 
     @SuppressLint("InflateParams")

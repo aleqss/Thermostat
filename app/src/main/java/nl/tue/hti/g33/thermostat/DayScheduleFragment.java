@@ -74,7 +74,7 @@ public class DayScheduleFragment extends Fragment implements ThermostatProvider 
         DayTimelineView timeline = (DayTimelineView) root.findViewById(R.id.timeline_day);
         timeline.setDayOfTheWeek(mDay);
         mViewAdapter = new DayPeriodAdapter(getActivity(),
-                mThermostat.getDaySchedule(mDay));
+                mThermostat.getDaySchedule(mDay), mDay, getFragmentManager());
         ListView switchesList = (ListView) root.findViewById(R.id.switches_list);
         switchesList.setAdapter(mViewAdapter);
         return root;
@@ -85,5 +85,10 @@ public class DayScheduleFragment extends Fragment implements ThermostatProvider 
     public Thermostat provideThermostat() {
 
         return mThermostat;
+    }
+
+    public void invalidateList() {
+
+        mViewAdapter.invalidate();
     }
 }

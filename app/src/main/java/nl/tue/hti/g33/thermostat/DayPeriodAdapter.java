@@ -1,23 +1,30 @@
 package nl.tue.hti.g33.thermostat;
 
 import android.content.Context;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import nl.tue.hti.g33.thermostat.utils.DAY;
 import nl.tue.hti.g33.thermostat.utils.Period;
+import nl.tue.hti.g33.thermostat.utils.Thermostat;
 
 /**
- * Created by Alex on 21.06.2015.
+ * @author Alex, 21.06.2015.
  */
 public class DayPeriodAdapter extends BaseAdapter {
 
     private ArrayList<Period> mDayPeriods;
     private LayoutInflater inflater;
+    private Thermostat mThermostat;
+    private DAY mDay;
+    private FragmentManager mManager;
 
     private class ViewHolder {
 
@@ -25,13 +32,17 @@ public class DayPeriodAdapter extends BaseAdapter {
         private TextView endTime;
     }
 
-    public DayPeriodAdapter(Context context, Iterable<Period> dayPeriods) {
+    public DayPeriodAdapter(Context context, Iterable<Period> dayPeriods,
+                            DAY day, FragmentManager manager) {
 
         inflater = LayoutInflater.from(context);
         mDayPeriods = new ArrayList<>();
         for (Period p : dayPeriods) {
             mDayPeriods.add(p);
         }
+        mThermostat = Thermostat.getInstance();
+        mDay = day;
+        mManager = manager;
     }
 
     /**
@@ -89,7 +100,7 @@ public class DayPeriodAdapter extends BaseAdapter {
      * @return A View corresponding to the data at the specified position.
      */
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
 
         ViewHolder holder;
         if (convertView == null) {
@@ -104,6 +115,43 @@ public class DayPeriodAdapter extends BaseAdapter {
         }
         holder.startTime.setText(mDayPeriods.get(position).getStartingTimeT().toString());
         holder.endTime.setText(mDayPeriods.get(position).getEndTimeT().toString());
+
+        ImageButton deleteBtn = (ImageButton) convertView.findViewById(R.id.delete_item);
+        ImageButton editBtn = (ImageButton) convertView.findViewById(R.id.edit_item);
+        deleteBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Period p = mDayPeriods.get(position);
+                mThermostat.deleteSwitch(mDay, p);
+                mDayPeriods = new ArrayList<>();
+                for (Period per : mThermostat.getDaySchedule(mDay)) {
+                    mDayPeriods.add(per);
+                }
+                notifyDataSetChanged();
+            }
+        });
+        editBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Period p = mDayPeriods.get(position);
+                AddRuleDialogFragment frag = AddRuleDialogFragment.newInstance(p, mDay);
+                frag.show(mManager, "Edit view");
+                mDayPeriods = new ArrayList<>();
+                for (Period per : mThermostat.getDaySchedule(mDay)) {
+                    mDayPeriods.add(per);
+                }
+                notifyDataSetChanged();
+            }
+        });
         return convertView;
+    }
+
+    public void invalidate() {
+
+        mDayPeriods = new ArrayList<>();
+        for (Period per : mThermostat.getDaySchedule(mDay)) {
+            mDayPeriods.add(per);
+        }
+        notifyDataSetChanged();
     }
 }

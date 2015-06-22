@@ -2,21 +2,26 @@ package nl.tue.hti.g33.thermostat;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import nl.tue.hti.g33.thermostat.utils.DAY;
+import nl.tue.hti.g33.thermostat.utils.Period;
 import nl.tue.hti.g33.thermostat.utils.Thermostat;
 import nl.tue.hti.g33.thermostat.utils.ThermostatProvider;
 
 
-public class DetailDayActivity extends AppCompatActivity implements ThermostatProvider {
+public class DetailDayActivity extends AppCompatActivity
+        implements ThermostatProvider, AddRuleDialogFragment.AddRuleDialogListener,
+        DeleteAllDialogFragment.DeleteDialogListener {
 
     private Thermostat mThermostat;
     private DAY mDay;
     private Toolbar mToolbar;
+    private DayScheduleFragment mFrag;
 
     private static final String LOG_TAG = "DetailDayActivity";
 
@@ -39,9 +44,9 @@ public class DetailDayActivity extends AppCompatActivity implements ThermostatPr
         }
 
         mThermostat = Thermostat.getInstance();
-        DayScheduleFragment frag = DayScheduleFragment.newInstance(mDay);
+        mFrag = DayScheduleFragment.newInstance(mDay);
         getSupportFragmentManager().beginTransaction()
-                .add(R.id.container_day_schedule, frag).commit();
+                .add(R.id.container_day_schedule, mFrag).commit();
     }
 
     @Override
@@ -67,8 +72,20 @@ public class DetailDayActivity extends AppCompatActivity implements ThermostatPr
 
         if (id == R.id.action_add_switch) {
 
-            AddRuleDialogFragment dialog = AddRuleDialogFragment.newInstance(null, mDay);
-            dialog.show(getSupportFragmentManager(), "Add switch");
+            int cnt = 0;
+            for (Period p : mThermostat.getDaySchedule(mDay)) {
+                cnt++;
+            }
+            if (cnt < 5) {
+                AddRuleDialogFragment dialog = AddRuleDialogFragment.newInstance(null, mDay);
+                dialog.show(getSupportFragmentManager(), "Add switch");
+            }
+        }
+
+        if (id == R.id.action_delete_all) {
+
+            DeleteAllDialogFragment dialog = DeleteAllDialogFragment.newInstance(mDay);
+            dialog.show(getSupportFragmentManager(), "Delete all switches");
         }
 
         return super.onOptionsItemSelected(item);
@@ -78,5 +95,16 @@ public class DetailDayActivity extends AppCompatActivity implements ThermostatPr
     public Thermostat provideThermostat() {
 
         return mThermostat;
+    }
+
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog) {
+
+        mFrag.invalidateList();
+    }
+
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog) {
+
     }
 }
