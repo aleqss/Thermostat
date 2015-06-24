@@ -1,146 +1,205 @@
 package nl.tue.hti.g33.thermostat.utils;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
-import java.io.Serializable;
-
 /**
- * Helper class that represents a period of time for the thermostat.
- * @author Alex, 17.06.2015
+ * Represents a period of time (e.g. has starting time and end time). The period
+ * is meant to happen within one day.
+ *
+ * @author Alex, 17.06.2015, HTI group 33, TU/e.
  */
-public class Period implements Comparable<Period>, Parcelable, Serializable {
+public class Period implements Comparable<Period> {
 
-    private int mStartH;
-    private int mStartM;
-    private int mEndH;
-    private int mEndM;
+    private Time mStartTime;
+    private Time mEndTime;
 
     private static final String LOG_TAG = "utils.Period";
 
     /**
-     * Construct a new Period; parameters are checked.
-     * @param startH Starting time, hours.
-     * @param startM Starting time, minutes.
-     * @param endH End time, hours.
-     * @param endM End time, minutes.
-     * @throws IllegalArgumentException
+     * Construct a new Period represented as startH:startM – endH:endM.
+     * Parameters are checked: starting time should be strictly less than end
+     * time; end time can be at most 24:00 (represents absent end time).
+     *
+     * @param startH Starting time, hours (0 – 23).
+     * @param startM Starting time, minutes (0 – 59).
+     * @param endH End time, hours (0 – 24).
+     * @param endM End time, minutes (0 – 59).
+     * @throws IllegalArgumentException if any of the arguments are out of
+     * specified bounds.
      */
     public Period(int startH, int startM, int endH, int endM) {
 
-        if (0 > startH || startH > 23 || 0 > startM || startM > 59
-                || 0 > endH || endH > 24 || 0 > endM || endM > 59
+        if (startH < 0 || startH > 23 || startM < 0 || startM > 59
+                || endH < 0 || endH > 24 || endM < 0 || endM > 59
                 || endH == 24 && endM != 0 || startH > endH
-                || (startH == endH && startM > endM)) {
-            Log.e(LOG_TAG, "Illegal arguments used in constructor");
-            throw new IllegalArgumentException(LOG_TAG + ": constructor failed");
+                || (startH == endH && startM >= endM)) {
+            Log.e(LOG_TAG, "Period(int startH, int startM, int endH, int endM) " +
+                    "got bad argument");
+            throw new IllegalArgumentException(LOG_TAG + ": Period(" + startH
+                    + ", " + startM + ", " + endH + ", " + endM + ")");
         }
-        mStartH = startH;
-        mStartM = startM;
-        mEndH = endH;
-        mEndM = endM;
+        mStartTime = new Time(startH, startM);
+        mEndTime = new Time(endH, endM);
     }
 
     /**
-     * Get the starting time.
-     * @return Starting time in format {hh, mm} in an {@link java.util.ArrayList}.
+     * Constructs a new Period represented as start – end, where start and end
+     * are the number of minutes since last midnight, and start is strictly less
+     * than end. Value of 24 * 60 that end can have represents a period that does
+     * not have an end (i.e. {@code UNDEFINED} {@link Time}.
+     *
+     * @param start Start of period as number of minutes since midnight
+     *              (0 – 24 * 60 - 1)
+     * @param end End of period as number of minutes since midnight (0 – 24 * 60),
+     *            24 * 60 stands for {@code {@link Time}.UNDEFINED}.
+     * @throws IllegalArgumentException if any of the arguments are out of
+     * specified bounds.
+     */
+    public Period(int start, int end) {
+
+        if (start < 0 || start >= 24 * 60 || end < 0 || end > 24 * 60
+                || start >= end) {
+            Log.e(LOG_TAG, "Period(int start, int end) got bad argument");
+            throw new IllegalArgumentException(LOG_TAG + ": Period(" + start
+                    + ", " + end + ")");
+        }
+        mStartTime = new Time(start);
+        mEndTime = new Time(end);
+    }
+
+    /**
+     * Constructs a new Period with start time and end time given as {@link Time}
+     * objects. Start time should be strictly less than end time. None of the
+     * arguments can be null.
+     *
+     * @param start Start time of the period.
+     * @param end End time of the period.
+     * @throws IllegalArgumentException if start >= end.
+     */
+    public Period(@NonNull Time start, @NonNull Time end) {
+
+        if (start.compareTo(end) <= 0) {
+            Log.e(LOG_TAG, "Period(Time start, Time end) got bad argument");
+            throw new IllegalArgumentException(LOG_TAG + ": Period("
+                    + start.toString() + ", " + end.toString() + ")");
+        }
+        mStartTime = start;
+        mEndTime = end;
+    }
+
+    /**
+     * Get the starting time as a {@link Time} object.
+     *
+     * @return Starting time as a non-null {@link Time} object.
      */
     public Time getStartingTimeT() {
 
-        return new Time(mStartH, mStartM);
+        return mStartTime;
     }
 
     /**
-     * Get the starting time.
-     * @return Starting time in minutes since 00:00.
+     * Get the starting time in minutes since midnight.
+     *
+     * @return Starting time in minutes since 00:00 (0 – 24 * 60 - 1).
      */
     public int getStartingTime() {
 
-        return mStartH * 60 + mStartM;
+        return mStartTime.getTime();
     }
 
     /**
-     * Get the starting time.
-     * @return Hours value of the starting time.
+     * Get the starting time hours since midnight.
+     *
+     * @return Hours value of the starting time (0 – 23).
      */
     public int getStartingTimeH() {
 
-        return mStartH;
+        return mStartTime.getTimeH();
     }
 
     /**
-     * Get the starting time.
-     * @return Minutes value of the starting time.
+     * Get the starting time minutes since the start of an hour.
+     *
+     * @return Minutes value of the starting time (0 – 59).
      */
     public int getStartingTimeM() {
 
-        return mStartM;
+        return mStartTime.getTimeM();
     }
 
     /**
-     * Get the end time.
-     * @return End time in format {hh, mm} in an {@link java.util.ArrayList}.
+     * Get the end time as a {@link Time} object.
+     *
+     * @return End time as a non-null {@link Time} object.
      */
     public Time getEndTimeT() {
 
-        return new Time(mEndH, mEndM);
+        return mEndTime;
     }
 
     /**
-     * Get the end time.
-     * @return End time in minutes since 00:00.
+     * Get the end time in minutes since midnight.
+     *
+     * @return End time in minutes since 00:00 (0 – 24 * 60).
      */
     public int getEndTime() {
 
-        return mEndH * 60 + mEndM;
+        return mEndTime.getTime();
     }
 
     /**
-     * Get the end time.
-     * @return Hours value of the end time.
+     * Get the end time hours since midnight.
+     *
+     * @return Hours value of the end time (0 – 24).
      */
     public int getEndTimeH() {
 
-        return mEndH;
+        return mEndTime.getTimeH();
     }
 
     /**
-     * Get the end time.
-     * @return Minutes value of the end time.
+     * Get the end time minutes since the start of an hour.
+     *
+     * @return Minutes value of the end time (0 – 59).
      */
     public int getEndTimeM() {
 
-        return mEndM;
+        return mEndTime.getTimeM();
     }
 
     /**
-     * Checks if the two time periods intersect.
+     * Checks if the two time periods intersect. The arguments must be non-null.
+     *
      * @param p Period to be compared with {@code this}.
      * @return True if two periods intersect.
      */
-    public boolean intersects(Period p) {
+    public boolean intersects(@NonNull Period p) {
 
         int start = getStartingTime();
         int end = getEndTime();
         int pStart = p.getStartingTime();
         int pEnd = p.getEndTime();
 
-        return (start <= pEnd && start >= pStart) || (start <= pStart && end >= pStart);
+        return (start <= pEnd && start >= pStart)
+                || (start <= pStart && end >= pStart);
     }
 
     /**
      * Combines this period with period {@code p} if they intersect.
-     * Make sure they DO intersect by calling {@link #intersects(Period p)} before
-     * calling this function.
+     * Make sure they DO intersect by calling {@link #intersects(Period p)}
+     * before calling this function; p must be non-null.
+     *
      * @param p Intersecting period to be combined with.
      * @return Combined period.
      */
-    public Period combine(Period p) {
+    public Period combine(@NonNull Period p) {
 
         if (!intersects(p)) {
-            Log.e(LOG_TAG, "Periods could not be combined: " + toString() + " " + p.toString());
-            throw new IllegalArgumentException(LOG_TAG + ": combine failed.");
+            Log.e(LOG_TAG, "Periods could not be combined: " + toString() + " "
+                    + p.toString());
+            throw new IllegalArgumentException(LOG_TAG + ": combine failed: "
+                    + toString() + ", " + p.toString() + ".");
         }
 
         int start = getStartingTime();
@@ -151,83 +210,33 @@ public class Period implements Comparable<Period>, Parcelable, Serializable {
         start = (start < pStart ? start : pStart);
         end = (end > pEnd ? end : pEnd);
 
-        return new Period(start / 60, start % 60, end / 60, end % 60);
+        return new Period(start, end);
     }
 
     /**
-     * Returns textual representation of the period in format "h:m – h:m".
+     * Returns textual representation of the period in format "HH:MM – HH:MM".
+     *
      * @return String representation of the period.
      */
     @Override
     public String toString() {
 
-        return mStartH + ":" + mStartM + " – " + mEndH + ":" + mEndM;
+        return mStartTime.toString() + " – " + mEndTime.toString();
     }
 
     /**
      * Compares this object to the specified object to determine their relative
      * order.
      *
-     * @param p the object to compare to this instance.
-     * @return a negative integer if this instance is less than {@code another};
+     * @param p The non-null period to compare to this instance.
+     * @return A negative integer if this instance is less than {@code another};
      * a positive integer if this instance is greater than
      * {@code another}; 0 if this instance has the same order as
-     * {@code another}.
-     * @throws ClassCastException if {@code another} cannot be converted into something
-     *                            comparable to {@code this} instance.
+     * {@code another}. Comparison is done based on starting time.
      */
     @Override
-    public int compareTo(Period p) {
+    public int compareTo(@NonNull Period p) {
 
-        return getStartingTime() - p.getStartingTime();
-    }
-
-    /**
-     * Describe the kinds of special objects contained in this Parcelable's
-     * marshalled representation.
-     *
-     * @return a bitmask indicating the set of special object types marshalled
-     * by the Parcelable.
-     */
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    /**
-     * Flatten this object in to a Parcel.
-     *
-     * @param dest  The Parcel in which the object should be written.
-     * @param flags Additional flags about how the object should be written.
-     *              May be 0 or {@link #PARCELABLE_WRITE_RETURN_VALUE}.
-     */
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-
-        dest.writeInt(mStartH);
-        dest.writeInt(mStartM);
-        dest.writeInt(mEndH);
-        dest.writeInt(mEndM);
-    }
-
-    public static final Parcelable.Creator<Period> CREATOR = new Creator<Period>() {
-        @Override
-        public Period createFromParcel(Parcel source) {
-
-            return new Period(source);
-        }
-
-        @Override
-        public Period[] newArray(int size) {
-            return new Period[size];
-        }
-    };
-
-    private Period(Parcel in) {
-
-        mStartH = in.readInt();
-        mStartM = in.readInt();
-        mEndH = in.readInt();
-        mEndM = in.readInt();
+        return getStartingTimeT().compareTo(p.getStartingTimeT());
     }
 }

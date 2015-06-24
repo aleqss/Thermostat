@@ -1,28 +1,26 @@
 package nl.tue.hti.g33.thermostat.utils;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Log;
 
-import java.io.Serializable;
-
 /**
- * Represents temperature for the thermostat in convenient form.
+ * Represents temperature for the thermostat in a convenient form.
+ *
  * @author Alex, 17.06.2015.
  */
-public class Temperature implements Parcelable, Serializable {
+public class Temperature implements Comparable<Temperature> {
 
     private double mTemperature;
 
     private static final String LOG_TAG = "utils.Temperature";
 
     /**
-     * Create a new temperature between 5.0 and 30.0
+     * Create a new temperature between 5.0 °C and 30.0 °C.
+     *
      * @param temperature Temperature value to be assigned after checks.
-     * @param fahrenheit Set to true if the value is in degrees Fahrenheit
+     * @param fahrenheit Set to true if the value is in degrees Fahrenheit.
      */
     public Temperature(double temperature, boolean fahrenheit) {
-
+// TODO: Finish reviewing the code.
         double celsiusTemperature = roundToTenth(temperature);
         if (fahrenheit) {
             celsiusTemperature = convertToCelsius(temperature);
@@ -80,60 +78,19 @@ public class Temperature implements Parcelable, Serializable {
     }
 
     /**
-     * Describe the kinds of special objects contained in this Parcelable's
-     * marshalled representation.
+     * Compares this object to the specified object to determine their relative
+     * order.
      *
-     * @return a bitmask indicating the set of special object types marshalled
-     * by the Parcelable.
+     * @param another the object to compare to this instance.
+     * @return a negative integer if this instance is less than {@code another};
+     * a positive integer if this instance is greater than
+     * {@code another}; 0 if this instance has the same order as
+     * {@code another}.
+     * @throws ClassCastException if {@code another} cannot be converted into something
+     *                            comparable to {@code this} instance.
      */
     @Override
-    public int describeContents() {
+    public int compareTo(Temperature another) {
         return 0;
-    }
-
-    /**
-     * Flatten this object in to a Parcel.
-     *
-     * @param dest  The Parcel in which the object should be written.
-     * @param flags Additional flags about how the object should be written.
-     *              May be 0 or {@link #PARCELABLE_WRITE_RETURN_VALUE}.
-     */
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-
-        dest.writeDouble(mTemperature);
-    }
-
-    public static final Parcelable.Creator<Temperature> CREATOR = new Parcelable.Creator<Temperature>() {
-
-        /**
-         * Create a new instance of the Parcelable class, instantiating it
-         * from the given Parcel whose data had previously been written by
-         * {@link Parcelable#writeToParcel Parcelable.writeToParcel()}.
-         *
-         * @param source The Parcel to read the object's data from.
-         * @return Returns a new instance of the Parcelable class.
-         */
-        @Override
-        public Temperature createFromParcel(Parcel source) {
-            return new Temperature(source);
-        }
-
-        /**
-         * Create a new array of the Parcelable class.
-         *
-         * @param size Size of the array.
-         * @return Returns an array of the Parcelable class, with every entry
-         * initialized to null.
-         */
-        @Override
-        public Temperature[] newArray(int size) {
-            return new Temperature[size];
-        }
-    };
-
-    private Temperature(Parcel in) {
-
-        mTemperature = in.readDouble();
     }
 }
