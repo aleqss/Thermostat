@@ -7,7 +7,7 @@
 
     <string name="tab_home">Home</string>
     <string name="tab_week_schedule">Week Schedule</string>
-    <string name="tab_vacation_mode">Vacation Mode</string>
+    <string name="tab_temperatures">Temperatures</string>
 
     <string name="mon">Monday</string>
     <string name="tue">Tuesday</string>
@@ -16,4 +16,16 @@
     <string name="fri">Friday</string>
     <string name="sat">Saturday</string>
     <string name="sun">Sunday</string>
+
+    <string name="add_rule">Add day period</string>
+    <string name="edit_rule">Edit day period</string>
+    <string name="time_begin">Begin day period</string>
+    <string name="time_end">End day period</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="title_activity_detail_day">Day Switches</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

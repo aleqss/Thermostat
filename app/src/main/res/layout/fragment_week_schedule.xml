@@ -1,135 +1,233 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:id="@+id/fragment_week_schedule"
     tools:context="nl.tue.hti.g33.thermostat.WeekScheduleFragment">
 
-
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/mon"
-        android:enabled="false"
-        android:textColor="@color/primary_text_default_material_light" />
+        android:orientation="vertical">
 
-    <nl.tue.hti.g33.thermostat.utils.DayTimelineView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/view_mon"
-        android:layout_gravity="center_horizontal"
-        custom:dayOfTheWeek="Mon"
-        custom:colorDay="@android:color/holo_red_dark"
-        custom:colorNight="@android:color/holo_blue_dark"
-        custom:colorGrid="@android:color/secondary_text_light"
-        custom:colorText="@android:color/primary_text_light" />
+        <LinearLayout
+            android:id="@+id/frag_mon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/tue"
-        android:enabled="false"
-        android:textColor="@color/primary_text_default_material_light" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:paddingLeft="@dimen/week_schedule_text_padding"
+                android:paddingRight="@dimen/week_schedule_text_padding"
+                android:text="@string/mon"
+                android:textColor="@color/charcoal" />
 
-    <nl.tue.hti.g33.thermostat.utils.DayTimelineView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/view_tue"
-        android:layout_gravity="center_horizontal"
-        custom:dayOfTheWeek="Tue"
-        custom:colorDay="@android:color/holo_red_dark"
-        custom:colorNight="@android:color/holo_blue_dark"
-        custom:colorGrid="@android:color/secondary_text_light"
-        custom:colorText="@android:color/primary_text_light" />
+            <nl.tue.hti.g33.thermostat.widgets.DayTimelineView
+                android:id="@+id/view_mon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                custom:colorDay="@color/bean_red"
+                custom:colorGrid="@color/charcoal"
+                custom:colorNight="@color/glacial_blue_ice"
+                custom:colorText="@color/night"
+                custom:dayOfTheWeek="Mon" />
+        </LinearLayout>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/wed"
-        android:enabled="false"
-        android:textColor="@color/primary_text_default_material_light" />
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/week_schedule_spacing"
+            android:layout_gravity="center_horizontal" />
 
-    <nl.tue.hti.g33.thermostat.utils.DayTimelineView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/view_wed"
-        android:layout_gravity="center_horizontal"
-        custom:dayOfTheWeek="Wed"
-        custom:colorDay="@android:color/holo_red_dark"
-        custom:colorNight="@android:color/holo_blue_dark"
-        custom:colorGrid="@android:color/secondary_text_light"
-        custom:colorText="@android:color/primary_text_light" />
+        <LinearLayout
+            android:id="@+id/frag_tue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/thu"
-        android:enabled="false"
-        android:textColor="@color/primary_text_default_material_light" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:paddingLeft="@dimen/week_schedule_text_padding"
+                android:paddingRight="@dimen/week_schedule_text_padding"
+                android:text="@string/tue"
+                android:textColor="@color/charcoal" />
 
-    <nl.tue.hti.g33.thermostat.utils.DayTimelineView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/view_thu"
-        android:layout_gravity="center_horizontal"
-        custom:dayOfTheWeek="Thu"
-        custom:colorDay="@android:color/holo_red_dark"
-        custom:colorNight="@android:color/holo_blue_dark"
-        custom:colorGrid="@android:color/secondary_text_light"
-        custom:colorText="@android:color/primary_text_light" />
+            <nl.tue.hti.g33.thermostat.widgets.DayTimelineView
+                android:id="@+id/view_tue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                custom:colorDay="@color/bean_red"
+                custom:colorGrid="@color/charcoal"
+                custom:colorNight="@color/glacial_blue_ice"
+                custom:colorText="@color/night"
+                custom:dayOfTheWeek="Tue" />
+        </LinearLayout>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/fri"
-        android:enabled="false"
-        android:textColor="@color/primary_text_default_material_light" />
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/week_schedule_spacing"
+            android:layout_gravity="center_horizontal" />
 
-    <nl.tue.hti.g33.thermostat.utils.DayTimelineView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/view_fri"
-        android:layout_gravity="center_horizontal"
-        custom:dayOfTheWeek="Fri"
-        custom:colorDay="@android:color/holo_red_dark"
-        custom:colorNight="@android:color/holo_blue_dark"
-        custom:colorGrid="@android:color/secondary_text_light"
-        custom:colorText="@android:color/primary_text_light" />
+        <LinearLayout
+            android:id="@+id/frag_wed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/sat"
-        android:enabled="false"
-        android:textColor="@color/primary_text_default_material_light" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:paddingLeft="@dimen/week_schedule_text_padding"
+                android:paddingRight="@dimen/week_schedule_text_padding"
+                android:text="@string/wed"
+                android:textColor="@color/charcoal" />
 
-    <nl.tue.hti.g33.thermostat.utils.DayTimelineView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/view_sat"
-        android:layout_gravity="center_horizontal"
-        custom:dayOfTheWeek="Sat"
-        custom:colorDay="@android:color/holo_red_dark"
-        custom:colorNight="@android:color/holo_blue_dark"
-        custom:colorGrid="@android:color/secondary_text_light"
-        custom:colorText="@android:color/primary_text_light" />
+            <nl.tue.hti.g33.thermostat.widgets.DayTimelineView
+                android:id="@+id/view_wed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                custom:colorDay="@color/bean_red"
+                custom:colorGrid="@color/charcoal"
+                custom:colorNight="@color/glacial_blue_ice"
+                custom:colorText="@color/night"
+                custom:dayOfTheWeek="Wed" />
+        </LinearLayout>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/sun"
-        android:enabled="false"
-        android:textColor="@color/primary_text_default_material_light" />
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/week_schedule_spacing"
+            android:layout_gravity="center_horizontal" />
 
-    <nl.tue.hti.g33.thermostat.utils.DayTimelineView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/view_sun"
-        android:layout_gravity="center_horizontal"
-        custom:dayOfTheWeek="Sun"
-        custom:colorDay="@android:color/holo_red_dark"
-        custom:colorNight="@android:color/holo_blue_dark"
-        custom:colorGrid="@android:color/secondary_text_light"
-        custom:colorText="@android:color/primary_text_light" />
-</LinearLayout>
+        <LinearLayout
+            android:id="@+id/frag_thu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:paddingLeft="@dimen/week_schedule_text_padding"
+                android:paddingRight="@dimen/week_schedule_text_padding"
+                android:text="@string/thu"
+                android:textColor="@color/charcoal" />
+
+            <nl.tue.hti.g33.thermostat.widgets.DayTimelineView
+                android:id="@+id/view_thu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                custom:colorDay="@color/bean_red"
+                custom:colorGrid="@color/charcoal"
+                custom:colorNight="@color/glacial_blue_ice"
+                custom:colorText="@color/night"
+                custom:dayOfTheWeek="Thu" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/week_schedule_spacing"
+            android:layout_gravity="center_horizontal" />
+
+        <LinearLayout
+            android:id="@+id/frag_fri"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:paddingLeft="@dimen/week_schedule_text_padding"
+                android:paddingRight="@dimen/week_schedule_text_padding"
+                android:text="@string/fri"
+                android:textColor="@color/charcoal" />
+
+            <nl.tue.hti.g33.thermostat.widgets.DayTimelineView
+                android:id="@+id/view_fri"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                custom:colorDay="@color/bean_red"
+                custom:colorGrid="@color/charcoal"
+                custom:colorNight="@color/glacial_blue_ice"
+                custom:colorText="@color/night"
+                custom:dayOfTheWeek="Fri" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/week_schedule_spacing"
+            android:layout_gravity="center_horizontal" />
+
+        <LinearLayout
+            android:id="@+id/frag_sat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:paddingLeft="@dimen/week_schedule_text_padding"
+                android:paddingRight="@dimen/week_schedule_text_padding"
+                android:text="@string/sat"
+                android:textColor="@color/charcoal" />
+
+            <nl.tue.hti.g33.thermostat.widgets.DayTimelineView
+                android:id="@+id/view_sat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                custom:colorDay="@color/bean_red"
+                custom:colorGrid="@color/charcoal"
+                custom:colorNight="@color/glacial_blue_ice"
+                custom:colorText="@color/night"
+                custom:dayOfTheWeek="Sat" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/week_schedule_spacing"
+            android:layout_gravity="center_horizontal" />
+
+        <LinearLayout
+            android:id="@+id/frag_sun"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:paddingLeft="@dimen/week_schedule_text_padding"
+                android:paddingRight="@dimen/week_schedule_text_padding"
+                android:text="@string/sun"
+                android:textColor="@color/charcoal" />
+
+            <nl.tue.hti.g33.thermostat.widgets.DayTimelineView
+                android:id="@+id/view_sun"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                custom:colorDay="@color/bean_red"
+                custom:colorGrid="@color/charcoal"
+                custom:colorNight="@color/glacial_blue_ice"
+                custom:colorText="@color/night"
+                custom:dayOfTheWeek="Sun" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

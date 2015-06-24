@@ -1,14 +1,16 @@
 package nl.tue.hti.g33.thermostat.utils;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
-import java.util.ArrayList;
+import java.io.Serializable;
 
 /**
  * Helper class that represents a period of time for the thermostat.
  * @author Alex, 17.06.2015
  */
-public class Period implements Comparable<Period> {
+public class Period implements Comparable<Period>, Parcelable, Serializable {
 
     private int mStartH;
     private int mStartM;
@@ -27,9 +29,10 @@ public class Period implements Comparable<Period> {
      */
     public Period(int startH, int startM, int endH, int endM) {
 
-        if (0 < startH || startH > 23 || 0 < startM || startM > 59
-                || 0 < endH || endH > 23 || 0 < endM || endM > 59
-                || startH > endH || (startH == endH && endH > endM)) {
+        if (0 > startH || startH > 23 || 0 > startM || startM > 59
+                || 0 > endH || endH > 24 || 0 > endM || endM > 59
+                || endH == 24 && endM != 0 || startH > endH
+                || (startH == endH && startM > endM)) {
             Log.e(LOG_TAG, "Illegal arguments used in constructor");
             throw new IllegalArgumentException(LOG_TAG + ": constructor failed");
         }
@@ -43,12 +46,9 @@ public class Period implements Comparable<Period> {
      * Get the starting time.
      * @return Starting time in format {hh, mm} in an {@link java.util.ArrayList}.
      */
-    public ArrayList<Integer> getListStartingTime() {
+    public Time getStartingTimeT() {
 
-        ArrayList<Integer> stTime =  new ArrayList<>(2);
-        stTime.set(0, mStartH);
-        stTime.set(1, mStartM);
-        return stTime;
+        return new Time(mStartH, mStartM);
     }
 
     /**
@@ -82,12 +82,9 @@ public class Period implements Comparable<Period> {
      * Get the end time.
      * @return End time in format {hh, mm} in an {@link java.util.ArrayList}.
      */
-    public ArrayList<Integer> getListEndTime() {
+    public Time getEndTimeT() {
 
-        ArrayList<Integer> endTime =  new ArrayList<>(2);
-        endTime.set(0, mEndH);
-        endTime.set(1, mEndM);
-        return endTime;
+        return new Time(mEndH, mEndM);
     }
 
     /**
@@ -151,8 +148,8 @@ public class Period implements Comparable<Period> {
         int end = getEndTime();
         int pEnd = p.getEndTime();
 
-        start = Math.min(start, pStart);
-        end = Math.max(end, pEnd);
+        start = (start < pStart ? start : pStart);
+        end = (end > pEnd ? end : pEnd);
 
         return new Period(start / 60, start % 60, end / 60, end % 60);
     }
@@ -164,7 +161,7 @@ public class Period implements Comparable<Period> {
     @Override
     public String toString() {
 
-        return mStartH + ":" + mStartH + " – " + mEndH + ":" + mEndM;
+        return mStartH + ":" + mStartM + " – " + mEndH + ":" + mEndM;
     }
 
     /**
@@ -183,5 +180,54 @@ public class Period implements Comparable<Period> {
     public int compareTo(Period p) {
 
         return getStartingTime() - p.getStartingTime();
+    }
+
+    /**
+     * Describe the kinds of special objects contained in this Parcelable's
+     * marshalled representation.
+     *
+     * @return a bitmask indicating the set of special object types marshalled
+     * by the Parcelable.
+     */
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    /**
+     * Flatten this object in to a Parcel.
+     *
+     * @param dest  The Parcel in which the object should be written.
+     * @param flags Additional flags about how the object should be written.
+     *              May be 0 or {@link #PARCELABLE_WRITE_RETURN_VALUE}.
+     */
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
+        dest.writeInt(mStartH);
+        dest.writeInt(mStartM);
+        dest.writeInt(mEndH);
+        dest.writeInt(mEndM);
+    }
+
+    public static final Parcelable.Creator<Period> CREATOR = new Creator<Period>() {
+        @Override
+        public Period createFromParcel(Parcel source) {
+
+            return new Period(source);
+        }
+
+        @Override
+        public Period[] newArray(int size) {
+            return new Period[size];
+        }
+    };
+
+    private Period(Parcel in) {
+
+        mStartH = in.readInt();
+        mStartM = in.readInt();
+        mEndH = in.readInt();
+        mEndM = in.readInt();
     }
 }

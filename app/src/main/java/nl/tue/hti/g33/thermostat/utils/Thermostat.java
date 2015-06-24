@@ -1,6 +1,18 @@
 package nl.tue.hti.g33.thermostat.utils;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.util.Log;
+
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import nl.tue.hti.g33.thermostat.parser.ParsedThermostat;
+import nl.tue.hti.g33.thermostat.service.WebService;
 
 /**
  * Represents all the basic functionality of the thermostat and serves as an API
@@ -11,50 +23,97 @@ import java.util.ArrayList;
  */
 public class Thermostat {
 
-    private static ArrayList<DaySchedule> mWeekSchedule;
-    private static Temperature mDayTemperature;
-    private static Temperature mNightTemperature;
-    private static Temperature mVacationTemperature;
-    private static Temperature mCurrentTemperature;
-    private static Temperature mTargetTemperature;
-    private static boolean mVacationModeOn;
-    private static boolean mWeekScheduleOn;
-    private static int time;
-    // TODO: get time from server
+    private static final String LOG_TAG = "utils.Thermostat";
 
-    private static boolean mFahrenheit = false;
+    private static Thermostat instance;
 
-    /**
-     * Save new vacation mode temperature.
-     * @param temperature New vacation mode temperature.
-     */
-    public static void updateVacationTemperature(double temperature) {
+    private ArrayList<DaySchedule> mWeekSchedule;
+    private Temperature mDayTemperature;
+    private Temperature mNightTemperature;
+    private Temperature mCurrentTemperature;
+    private Temperature mTargetTemperature;
+    private boolean mWeekScheduleOn;
+    private int mTime;
+    private DAY mDayOfTheWeek;
 
-        Temperature vacationTemperature = new Temperature(temperature, mFahrenheit);
-        mVacationTemperature = vacationTemperature;
-        updateServer();
+    private boolean mFahrenheit = false;
+    
+    private ArrayList<ThermostatListener> mListener;
+    private Context mContext;
+    private Timer mTimer;
+
+    private ServiceConnection mConnection;
+    private WebService mService;
+    private boolean mBound;
+
+    public Thermostat(Context context) {
+
+        mListener = new ArrayList<>();
+        mContext = context;
+        mWeekSchedule = new ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            mWeekSchedule.add(new DaySchedule());
+        }
+
+        mBound = false;
+        mConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+
+                WebService.LocalBinder binder = (WebService.LocalBinder) service;
+                mService = binder.getService();
+                mBound = true;
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+
+                mBound = false;
+            }
+        };
+        Intent serviceIntent = new Intent(mContext, WebService.class);
+        mContext.bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
+
+        mTimer = new Timer("WebFetcher", true);
+        mTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+
+                downloadServer();
+            }
+        }, 0, 2000);
+
+        instance = this;
+    }
+
+    public static Thermostat getInstance() {
+
+        return instance;
+    }
+
+    public void addListener(ThermostatListener listener) {
+
+        mListener.add(listener);
     }
 
     /**
      * Save new day temperature for week schedule.
      * @param temperature New day temperature.
      */
-    public static void updateDayTemperature(double temperature) {
+    public void updateDayTemperature(double temperature) {
 
-        Temperature dayTemperature = new Temperature(temperature, mFahrenheit);
-        mDayTemperature = dayTemperature;
-        updateServer();
+        mDayTemperature = new Temperature(temperature, mFahrenheit);
+        uploadServer("day_temperature");
     }
 
     /**
      * Save new night temperature for week schedule.
-     * @param temperature
+     * @param temperature New night temperature.
      */
-    public static void updateNightTemperature(double temperature) {
+    public void updateNightTemperature(double temperature) {
 
-        Temperature nightTemperature = new Temperature(temperature, mFahrenheit);
-        mNightTemperature = nightTemperature;
-        updateServer();
+        mNightTemperature = new Temperature(temperature, mFahrenheit);
+        uploadServer("night_temperature");
     }
 
     /**
@@ -63,10 +122,11 @@ public class Thermostat {
      * @param dayPeriod Period of day temperature to be added.
      * @see DaySchedule
      */
-    public static void addSwitch(DAY dayOfTheWeek, Period dayPeriod) {
+    public void addSwitch(DAY dayOfTheWeek, Period dayPeriod) {
 
         DaySchedule schedule = mWeekSchedule.get(dayOfTheWeek.getId());
         schedule.addDayPeriod(dayPeriod);
+        uploadServer("week_program");
     }
 
     /**
@@ -75,74 +135,80 @@ public class Thermostat {
      * @param dayPeriod Period of day temperature to remove.
      * @see DaySchedule
      */
-    public static void deleteSwitch(DAY dayOfTheWeek, Period dayPeriod) {
+    public void deleteSwitch(DAY dayOfTheWeek, Period dayPeriod) {
 
         DaySchedule schedule = mWeekSchedule.get(dayOfTheWeek.getId());
         schedule.deleteDayPeriod(dayPeriod);
+        uploadServer("week_program");
     }
 
     /**
      * Enable / disable the vacation mode override.
      * @param on State of vacation mode override.
      */
-    public static void setVacationMode(boolean on) {
+    public void setVacationMode(boolean on, Temperature temperature) {
 
-        // TODO: check how this works on the server
         if (on) {
-            mTargetTemperature = mVacationTemperature;
+            mTargetTemperature = temperature;
+            uploadServer("target_temperature");
         }
         mWeekScheduleOn = !on;
+        uploadServer("week_program_state");
     }
 
     /**
      * Set target temperature to {@code temperature} temporarily.
      * @param temperature New temperature.
      */
-    public static void setTemporaryOverride(Temperature temperature) {
+    public void setTemporaryOverride(Temperature temperature) {
 
-        // TODO: check how this works on the server
         mTargetTemperature = temperature;
+        uploadServer("target_temperature");
     }
 
-    public static double getCurrentTemperature() {
+    public int getCurrentTime() {
+
+        return mTime;
+    }
+
+    public DAY getDayOfTheWeek() {
+
+        return mDayOfTheWeek;
+    }
+
+    public double getCurrentTemperature() {
 
         return mCurrentTemperature.getTemperature(mFahrenheit);
     }
 
-    public static double getDayTemperature() {
+    public double getDayTemperature() {
 
         return mDayTemperature.getTemperature(mFahrenheit);
     }
 
-    public static double getNightTemperature() {
+    public double getNightTemperature() {
 
         return mNightTemperature.getTemperature(mFahrenheit);
     }
 
-    public static double getVacationTemperature() {
+    public double getTargetTemperature() {
 
-        return mVacationTemperature.getTemperature(mFahrenheit);
+        return mTargetTemperature.getTemperature(mFahrenheit);
     }
 
-    public static boolean getWeekScheduleState() {
+    public boolean getWeekScheduleOn() {
 
         return mWeekScheduleOn;
     }
 
-    public static boolean getVacationModeOn() {
-
-        return mVacationModeOn;
-    }
-
-    public static Iterable<DaySchedule> getWeekSchedule() {
+    public Iterable<DaySchedule> getWeekSchedule() {
 
         return mWeekSchedule;
     }
 
-    public static Iterable<Period> getDaySchedule(DAY dayOfTheWeek) {
+    public Iterable<Period> getDaySchedule(DAY dayOfTheWeek) {
 
         return mWeekSchedule.get(dayOfTheWeek.getId()).getSchedule();
-        // TODO: mWeekSchedule is null here. Initialise the thermostat. Make it non-static maybe?
     }
 
     /**
@@ -150,14 +216,46 @@ public class Thermostat {
      * Thermostat then performs inner conversions on its own.
      * @param fahrenheit Use Fahrenheit instead of Celsius.
      */
-    public static void useFahrenheit(boolean fahrenheit) {
+    public void useFahrenheit(boolean fahrenheit) {
 
         mFahrenheit = fahrenheit;
     }
 
-    private static void updateServer() {
-        // TODO: think about what and how we send and how we do this altogether
-        // TODO: maybe use a service to constantly send and fetch information?
-        // TODO: or only do this on updates?
+    private void downloadServer() {
+
+        if (mBound) {
+            ParsedThermostat root = mService.getData();
+            if (root == null) {
+                Log.w(LOG_TAG, "Oops, Parsed Thermostat is null :(");
+                throw new NullPointerException(LOG_TAG + " thermostat update failed");
+            }
+
+            mCurrentTemperature = root.mCurrentTemperature;
+            mTargetTemperature = root.mTargetTemperature;
+            mDayTemperature = root.mDayTemperature;
+            mNightTemperature = root.mNightTemperature;
+            mDayOfTheWeek = root.mDayOfTheWeek;
+            mTime = root.mTime;
+            mWeekScheduleOn = root.mWeekScheduleOn;
+            mWeekSchedule = root.mWeekSchedule;
+
+            for (ThermostatListener listener : mListener) {
+                listener.onThermostatUpdate(this);
+            }
+        }
+    }
+
+    private void uploadServer(String uploadOption) {
+
+        if (mBound) {
+            ParsedThermostat copy = new ParsedThermostat();
+            copy.mWeekSchedule = mWeekSchedule;
+            copy.mWeekScheduleOn = mWeekScheduleOn;
+            copy.mNightTemperature = mNightTemperature;
+            copy.mDayTemperature = mDayTemperature;
+            copy.mTargetTemperature = mTargetTemperature;
+
+            mService.putData(uploadOption, copy);
+        }
     }
 }

@@ -2,6 +2,7 @@ package nl.tue.hti.g33.thermostat.utils;
 
 import android.util.Log;
 
+import java.io.Serializable;
 import java.util.TreeSet;
 
 /**
@@ -9,7 +10,7 @@ import java.util.TreeSet;
  * Also controls the amount of added switches.
  * @author Alex, 17.06.2015.
  */
-public class DaySchedule {
+public class DaySchedule implements Serializable {
 
     private TreeSet<Period> mDayPeriods;
 
@@ -62,6 +63,10 @@ public class DaySchedule {
         mDayPeriods.remove(dayPeriod);
     }
 
+    /**
+     * Returns the schedule as an iterable of periods.
+     * @return Schedule for the day in from of a list of periods.
+     */
     public Iterable<Period> getSchedule() {
 
         return mDayPeriods;
