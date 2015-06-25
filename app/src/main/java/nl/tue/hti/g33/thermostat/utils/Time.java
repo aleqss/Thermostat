@@ -3,6 +3,8 @@ package nl.tue.hti.g33.thermostat.utils;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import java.io.Serializable;
+
 /**
  * Represents time in format HH:MM.
  *
@@ -14,7 +16,7 @@ import android.util.Log;
  *
  * @author Aleksandr Popov, 21.06.2015, HTI group 33, TU/e.
  */
-public class Time implements Comparable<Time> {
+public class Time implements Comparable<Time>, Serializable {
 
     private int mH;                                         // Hours (0 – 24)
     private int mM;                                         // Minutes (0 – 59)

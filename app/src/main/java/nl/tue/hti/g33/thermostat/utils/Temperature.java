@@ -1,5 +1,6 @@
 package nl.tue.hti.g33.thermostat.utils;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 /**
@@ -18,17 +19,23 @@ public class Temperature implements Comparable<Temperature> {
      *
      * @param temperature Temperature value to be assigned after checks.
      * @param fahrenheit Set to true if the value is in degrees Fahrenheit.
+     * @throws IllegalArgumentException if resulting temperature in °C is out of
+     * specified bounds.
      */
     public Temperature(double temperature, boolean fahrenheit) {
-// TODO: Finish reviewing the code.
-        double celsiusTemperature = roundToTenth(temperature);
+
+        double celsiusTemperature = temperature;
         if (fahrenheit) {
             celsiusTemperature = convertToCelsius(temperature);
         }
 
+        celsiusTemperature = roundToTenth(celsiusTemperature);
+
         if (celsiusTemperature < 5.0 || celsiusTemperature > 30.0) {
-            Log.e(LOG_TAG, "Temperature is out of range");
-            throw new IllegalArgumentException(LOG_TAG + ": constructor failed");
+            Log.e(LOG_TAG, "Temperature(double temperature, boolean fahrenheit)"
+                    + " got bad argument");
+            throw new IllegalArgumentException(LOG_TAG + ": Temperature("
+                    + temperature + ", " + fahrenheit + ")");
         }
 
         mTemperature = celsiusTemperature;
@@ -36,39 +43,43 @@ public class Temperature implements Comparable<Temperature> {
 
     /**
      * Get the stored temperature.
+     *
      * @param fahrenheit Set to true if you want the value in degrees Fahrenheit.
      * @return Temperature in the desired format, round to tenth.
      */
     public double getTemperature(boolean fahrenheit) {
 
         if (fahrenheit) {
-            return convertToFahrenheit(mTemperature);
+            return roundToTenth(convertToFahrenheit(mTemperature));
         }
         return mTemperature;
     }
 
     /**
      * Converts temperature from degrees Celsius to degrees Fahrenheit.
+     *
      * @param temperature Temperature in degrees Celsius.
-     * @return Truncated temperature in degrees Fahrenheit.
+     * @return Temperature in degrees Fahrenheit.
      */
     private double convertToFahrenheit(double temperature) {
 
-        return roundToTenth(temperature * 9 / 5 + 32);
+        return temperature * 9 / 5 + 32;
     }
 
     /**
      * Converts temperature from degrees Fahrenheit to degrees Celsius.
+     *
      * @param temperature Temperature in degrees Fahrenheit.
-     * @return Truncated temperature in degrees Celsius.
+     * @return Temperature in degrees Celsius.
      */
     private double convertToCelsius(double temperature) {
 
-        return roundToTenth((temperature - 32) * 5 / 9);
+        return (temperature - 32) * 5 / 9;
     }
 
     /**
      * Trick to truncate a number to tenth.
+     *
      * @param number Any double to truncate.
      * @return The same number truncated to tenth.
      */
@@ -81,16 +92,23 @@ public class Temperature implements Comparable<Temperature> {
      * Compares this object to the specified object to determine their relative
      * order.
      *
-     * @param another the object to compare to this instance.
-     * @return a negative integer if this instance is less than {@code another};
+     * @param another The object to compare to this instance.
+     * @return A negative integer if this instance is less than {@code another};
      * a positive integer if this instance is greater than
      * {@code another}; 0 if this instance has the same order as
      * {@code another}.
-     * @throws ClassCastException if {@code another} cannot be converted into something
-     *                            comparable to {@code this} instance.
      */
     @Override
-    public int compareTo(Temperature another) {
-        return 0;
+    public int compareTo(@NonNull Temperature another) {
+
+        if (getTemperature(false) - another.getTemperature(false) < 0) {
+            return -1;
+        }
+        else if (getTemperature(false) - another.getTemperature(false) > 0) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
     }
 }

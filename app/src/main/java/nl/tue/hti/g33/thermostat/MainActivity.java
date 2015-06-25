@@ -48,6 +48,20 @@ public class MainActivity extends AppCompatActivity implements ThermostatProvide
     }
 
     @Override
+    protected void onPause() {
+
+        super.onPause();
+        mThermostat.stopUpdates();
+    }
+
+    @Override
+    protected void onResume() {
+
+        super.onResume();
+        mThermostat.resumeUpdates();
+    }
+
+    @Override
     public Thermostat provideThermostat() {
 
         return mThermostat;

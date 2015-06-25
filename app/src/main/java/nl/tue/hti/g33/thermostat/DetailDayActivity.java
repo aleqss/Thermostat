@@ -56,6 +56,20 @@ public class DetailDayActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onResume() {
+
+        super.onResume();
+        mThermostat.resumeUpdates();
+    }
+
+    @Override
+    protected void onPause() {
+
+        super.onPause();
+        mThermostat.stopUpdates();
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
         // Handle action bar item clicks here. The action bar will

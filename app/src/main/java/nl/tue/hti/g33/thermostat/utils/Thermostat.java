@@ -19,7 +19,8 @@ import nl.tue.hti.g33.thermostat.service.WebService;
  * between our UI code and server requests.
  * Also invokes all the data update requests and manages local storage; uses an
  * additional service to fetch / upload data from the server.
- * @author Alex, 17.06.2015.
+ *
+ * @author Alex, 17.06.2015, HTI group 33, TU/e.
  */
 public class Thermostat {
 
@@ -74,14 +75,14 @@ public class Thermostat {
         Intent serviceIntent = new Intent(mContext, WebService.class);
         mContext.bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
 
-        mTimer = new Timer("WebFetcher", true);
+        /*mTimer = new Timer("WebFetcher", true);
         mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
 
                 downloadServer();
             }
-        }, 0, 2000);
+        }, 0, 2000);*/
 
         instance = this;
     }
@@ -219,6 +220,24 @@ public class Thermostat {
     public void useFahrenheit(boolean fahrenheit) {
 
         mFahrenheit = fahrenheit;
+    }
+
+    public void stopUpdates() {
+
+        mTimer.cancel();
+        mTimer.purge();
+    }
+
+    public void resumeUpdates() {
+
+        mTimer = new Timer("WebFetcher", true);
+        mTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+
+                downloadServer();
+            }
+        }, 0, 2000);
     }
 
     private void downloadServer() {

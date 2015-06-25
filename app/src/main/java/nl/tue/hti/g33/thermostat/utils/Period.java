@@ -3,18 +3,20 @@ package nl.tue.hti.g33.thermostat.utils;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import java.io.Serializable;
+
 /**
  * Represents a period of time (e.g. has starting time and end time). The period
  * is meant to happen within one day.
  *
  * @author Alex, 17.06.2015, HTI group 33, TU/e.
  */
-public class Period implements Comparable<Period> {
+public class Period implements Comparable<Period>, Serializable {
 
-    private Time mStartTime;
-    private Time mEndTime;
+    private Time mStartTime;                                // Start Time
+    private Time mEndTime;                                  // End Time
 
-    private static final String LOG_TAG = "utils.Period";
+    private static final String LOG_TAG = "utils.Period";   // Logging identifier
 
     /**
      * Construct a new Period represented as startH:startM – endH:endM.

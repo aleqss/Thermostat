@@ -1,12 +1,16 @@
 package nl.tue.hti.g33.thermostat.utils;
 
+import android.support.annotation.NonNull;
+import android.util.Log;
+
 import java.io.Serializable;
 
 /**
  * Days of the week enumeration.
- * @author Alex, 17.06.2015.
+ *
+ * @author Alex, 17.06.2015, HTI group 33, TU/e.
  */
-public enum DAY implements Serializable{
+public enum DAY implements Serializable {
 
     MON(0, "Monday", "mon"),
     TUE(1, "Tuesday", "tue"),
@@ -20,11 +24,17 @@ public enum DAY implements Serializable{
     private final String mFullName;
     private final String mShortName;
 
+    private static final String LOG_TAG = "utils.DAY";
+
     /**
-     * Associate a number with the days of the week.
-     * @param id Order digit.
+     * Associate a number, short name and full name with the days of the week.
+     * Arguments can not be null.
+     *
+     * @param id Order digit, with 0 for Monday.
+     * @param fullName Full name of the weekday (e.g. "Sunday").
+     * @param shortName Short name of the weekday (e.g. "sun").
      */
-    DAY(int id, String fullName, String shortName) {
+    DAY(int id, @NonNull String fullName, @NonNull String shortName) {
 
         mId = id;
         mFullName = fullName;
@@ -32,7 +42,8 @@ public enum DAY implements Serializable{
     }
 
     /**
-     * Get the order digit for a day of the week.
+     * Get the order digit for a day of the week (e.g. 0 for Monday).
+     *
      * @return Day of the week number.
      */
     public int getId() {
@@ -40,16 +51,33 @@ public enum DAY implements Serializable{
         return mId;
     }
 
+    /**
+     * Get the full name for a day of the week (e.g. "Monday").
+     *
+     * @return Day of the week name.
+     */
     public String getFullName() {
 
         return mFullName;
     }
 
+    /**
+     * Get the short name for a day of the week (e.g. "sun").
+     *
+     * @return Day of the week shortened version.
+     */
     public String getShortName() {
 
         return mShortName;
     }
 
+    /**
+     * Return a DAY object based on id value (e.g. DAY.MON for 0).
+     *
+     * @param id Order digit.
+     * @return Corresponding DAY.
+     * @throws IllegalArgumentException if id is out of bounds (0 – 6).
+     */
     public static DAY getById(int id) {
 
         switch (id) {
@@ -68,11 +96,22 @@ public enum DAY implements Serializable{
             case 6:
                 return DAY.SUN;
             default:
-                throw new IllegalArgumentException("DAY: Wrong id");
+                Log.e(LOG_TAG, "DAY.getById(int id) got wrong argument");
+                throw new IllegalArgumentException(LOG_TAG + ": getById(" + id
+                        + ")");
         }
     }
 
-    public static DAY getByName(String name) {
+    /**
+     * Return a DAY object based on the name of the day (e.g. DAY.MON for
+     * "Monday"). Argument cannot be null.
+     *
+     * @param name Day of the week full name.
+     * @return Corresponding DAY.
+     * @throws IllegalArgumentException if the name is not a name of the day of
+     * the week.
+     */
+    public static DAY getByName(@NonNull String name) {
 
         name = name.toLowerCase();
         switch (name) {
@@ -91,11 +130,22 @@ public enum DAY implements Serializable{
             case "sunday":
                 return DAY.SUN;
             default:
-                throw new IllegalArgumentException("DAY: wrong name");
+                Log.e(LOG_TAG, "DAY.getByName(String name) got wrong argument");
+                throw new IllegalArgumentException(LOG_TAG + ": getByName("
+                        + name + ")");
         }
     }
 
-    public static DAY getByShortName(String name) {
+    /**
+     * Return a DAY object based on the short name of the day (e.g. DAY.MON for
+     * "mon"). Argument can not be null.
+     *
+     * @param name Day of the week short name.
+     * @return Corresponding DAY.
+     * @throws IllegalArgumentException if the name is not a name of the day of
+     * the week.
+     */
+    public static DAY getByShortName(@NonNull String name) {
 
         name = name.toLowerCase();
         switch (name) {
@@ -114,7 +164,10 @@ public enum DAY implements Serializable{
             case "sun":
                 return DAY.SUN;
             default:
-                throw new IllegalArgumentException("DAY: wrong short name");
+                Log.e(LOG_TAG, "DAY.getByShortName(String name) got wrong "
+                        + "argument");
+                throw new IllegalArgumentException(LOG_TAG + ": getByShortName("
+                        + name + ")");
         }
     }
 }
